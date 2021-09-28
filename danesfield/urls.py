@@ -5,11 +5,7 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
 
-from danesfield.core.rest import ImageViewSet
-from danesfield.core.views import GalleryView, image_summary
-
 router = routers.SimpleRouter()
-router.register(r'images', ImageViewSet)
 
 # OpenAPI generation
 schema_view = get_schema_view(
@@ -26,8 +22,6 @@ urlpatterns = [
     path('api/v1/', include(router.urls)),
     path('api/docs/redoc/', schema_view.with_ui('redoc'), name='docs-redoc'),
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
-    path('summary/', image_summary, name='image-summary'),
-    path('gallery/', GalleryView.as_view(), name='gallery'),
 ]
 
 if settings.DEBUG:
