@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
+from typing import Type
 
 from composed_configuration import (
     ComposedConfiguration,
@@ -13,7 +15,30 @@ from composed_configuration import (
 from configurations import values
 
 
-class DanesfieldMixin(ConfigMixin):
+class GeoDjangoMixin(ConfigMixin):
+    @staticmethod
+    def before_binding(configuration: Type[ComposedConfiguration]):
+        configuration.INSTALLED_APPS += ['django.contrib.gis']
+        try:
+            import re
+
+            import osgeo
+
+            libsdir = os.path.join(
+                os.path.dirname(os.path.dirname(osgeo._gdal.__file__)), 'GDAL.libs'
+            )
+            libs = {
+                re.split(r'-|\.', name)[0]: os.path.join(libsdir, name)
+                for name in os.listdir(libsdir)
+            }
+            configuration.GDAL_LIBRARY_PATH = libs['libgdal']
+            configuration.GEOS_LIBRARY_PATH = libs['libgeos_c']
+        except Exception:
+            # TODO: Log that we aren't using the expected GDAL wheel?
+            pass
+
+
+class DanesfieldMixin(GeoDjangoMixin, ConfigMixin):
     WSGI_APPLICATION = 'danesfield.wsgi.application'
     ROOT_URLCONF = 'danesfield.urls'
 
@@ -27,7 +52,7 @@ class DanesfieldMixin(ConfigMixin):
         ] + configuration.INSTALLED_APPS
 
         # Install additional apps
-        configuration.INSTALLED_APPS += ['s3_file_field', 'django.contrib.gis', 'rgd']
+        configuration.INSTALLED_APPS += ['s3_file_field', 'rgd']
         configuration.MIDDLEWARE += ['crum.CurrentRequestUserMiddleware']
         configuration.DATABASES = values.DatabaseURLValue(
             environ_name='DATABASE_URL',
