@@ -2,7 +2,9 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
+from typing import Set
 
+from billiard.einfo import ExceptionInfo
 import celery
 
 from danesfield.core.models import Dataset, DatasetRun
@@ -15,10 +17,27 @@ class ManagedTask(celery.Task):
         """Upload any new files to the dataset."""
         # TODO: Scan for new files and create new files, add to dataset.
 
+        # new_checksum_files: List[ChecksumFile] = []
+        existing_filenames: Set[str] = {file.name for file in self.dataset.files.all()}
+        for path, _, files in os.walk(self.output_dir):
+            fixed_filenames = {os.path.join(path, file) for file in files}
+            new_filenames = fixed_filenames - existing_filenames
+
+            # TODO: Append files to new_checksum_files
+            print('--- NEW:', new_filenames)
+
+            existing_filenames.update(new_filenames)
+
+        # TODO: Upload new_checksum_files to dataset.output_files
+
     def _download_dataset(self):
         """Download the dataset."""
-        # TODO: Handle imageful case
 
+        if not self.dataset.imageless:
+            # TODO: Handle imageful case
+            return
+
+        # Imageless case
         fd, path = tempfile.mkstemp()
         self.point_cloud_path = Path(path)
 
@@ -37,8 +56,9 @@ class ManagedTask(celery.Task):
         self.point_cloud_path.unlink(missing_ok=True)
         self.config_path.unlink(missing_ok=True)
 
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
+    def on_failure(self, exc, task_id, args, kwargs, einfo: ExceptionInfo):
         self.dataset_run.status = DatasetRun.Status.FAILED
+        self.dataset_run.output_log = einfo.traceback
         self.dataset_run.save()
 
         self._cleanup()
@@ -91,17 +111,24 @@ class ManagedTask(celery.Task):
 def run_danesfield(**kwargs):
     # Import docker here to django can import task without docker
     import docker
+    from docker.types import DeviceRequest, Mount
 
     data: DanesfieldRunData = kwargs['data']
     write_config_file(data)
 
-    with open(data.config_path) as readfile:
-        print(readfile.read())
-
-    # TODO: Mount volumes
+    # Construct container arguments
+    command = ['touch', f'{data.output_dir}/test.txt']
+    paths_to_mount = (data.output_dir, data.models_dir, data.config_path, data.point_cloud_path)
+    mounts = [Mount(target=str(path), source=str(path), type='bind') for path in paths_to_mount]
+    device_requests = [DeviceRequest(count=-1, capabilities=[['gpu']])]
 
     # Instantiate docker client
     client = docker.from_env()
-    output = client.containers.run('hello-world')
+    output = client.containers.run(
+        'alpine',
+        command=command,
+        mounts=mounts,
+        device_requests=device_requests,
+    )
 
     return output.decode('utf-8')
