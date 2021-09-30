@@ -16,6 +16,17 @@ class Dataset(TimeStampedModel):
     # For image run
     files = models.ManyToManyField(ChecksumFile, related_name='image_datasets')
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    models.Q(imageless=True, point_cloud_file__isnull=False)
+                    | models.Q(imageless=False, point_cloud_file__isnull=True)
+                ),
+                name='distinct_imageless',
+            )
+        ]
+
 
 class DatasetRun(TimeStampedModel):
     """A run of the danesfield algorithm on a dataset."""

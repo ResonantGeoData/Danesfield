@@ -68,7 +68,7 @@ class DevelopmentConfiguration(DanesfieldMixin, DevelopmentBaseConfiguration):
 
 
 class TestingConfiguration(DanesfieldMixin, TestingBaseConfiguration):
-    pass
+    CELERY_TASK_ALWAYS_EAGER = True
 
 
 class ProductionConfiguration(DanesfieldMixin, ProductionBaseConfiguration):

@@ -17,7 +17,6 @@ from .helpers import DanesfieldRunData, ensure_model_files, write_config_file
 class ManagedTask(celery.Task):
     def _upload_result_files(self):
         """Upload any new files to the dataset."""
-
         new_checksum_files: List[ChecksumFile] = []
         existing_filenames: Set[str] = {file.name for file in self.dataset.files.all()}
         for path, _, files in os.walk(self.output_dir):
@@ -42,8 +41,9 @@ class ManagedTask(celery.Task):
 
     def _download_dataset(self):
         """Download the dataset."""
-
         if not self.dataset.imageless:
+            self.point_cloud_path = None
+
             # TODO: Handle imageful case
             return
 
@@ -63,8 +63,9 @@ class ManagedTask(celery.Task):
         shutil.rmtree(self.models_dir, ignore_errors=True)
 
         # Remove files
-        self.point_cloud_path.unlink(missing_ok=True)
         self.config_path.unlink(missing_ok=True)
+        if self.point_cloud_path is not None:
+            self.point_cloud_path.unlink(missing_ok=True)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo: ExceptionInfo):
         self.dataset_run.status = DatasetRun.Status.FAILED
