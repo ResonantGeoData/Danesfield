@@ -2,10 +2,12 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
-from typing import Set
+from typing import List, Set
 
 from billiard.einfo import ExceptionInfo
 import celery
+from django.core.files.uploadedfile import SimpleUploadedFile
+from rgd.models.common import ChecksumFile
 
 from danesfield.core.models import Dataset, DatasetRun
 
@@ -15,20 +17,28 @@ from .helpers import DanesfieldRunData, ensure_model_files, write_config_file
 class ManagedTask(celery.Task):
     def _upload_result_files(self):
         """Upload any new files to the dataset."""
-        # TODO: Scan for new files and create new files, add to dataset.
 
-        # new_checksum_files: List[ChecksumFile] = []
+        new_checksum_files: List[ChecksumFile] = []
         existing_filenames: Set[str] = {file.name for file in self.dataset.files.all()}
         for path, _, files in os.walk(self.output_dir):
             fixed_filenames = {os.path.join(path, file) for file in files}
             new_filenames = fixed_filenames - existing_filenames
 
-            # TODO: Append files to new_checksum_files
-            print('--- NEW:', new_filenames)
+            for f in new_filenames:
+                relative_filename = Path(f).relative_to(self.output_dir)
+                checksum_file = ChecksumFile(name=relative_filename)
+
+                with open(f, 'rb') as file_contents:
+                    checksum_file.file = SimpleUploadedFile(
+                        name=relative_filename, content=file_contents.read()
+                    )
+
+                checksum_file.save()
+                new_checksum_files.append(checksum_file)
 
             existing_filenames.update(new_filenames)
 
-        # TODO: Upload new_checksum_files to dataset.output_files
+        self.dataset_run.output_files.add(*new_checksum_files)
 
     def _download_dataset(self):
         """Download the dataset."""
