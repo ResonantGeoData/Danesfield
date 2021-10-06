@@ -1,19 +1,20 @@
 import configparser
+import json
 import os
 from pathlib import Path
 import shutil
 import tempfile
 from typing import List, Set
+import zipfile
 
 from billiard.einfo import ExceptionInfo
 import celery
 from celery.utils.log import get_task_logger
 from django.core.files.uploadedfile import SimpleUploadedFile
+import requests
 from rgd.models.common import ChecksumFile
 
 from danesfield.core.models import Dataset, DatasetRun
-
-from .helpers import ensure_model_files
 
 logger = get_task_logger(__name__)
 
@@ -41,6 +42,34 @@ class ManagedTask(celery.Task):
                 new_checksum_files.append(checksum_file)
 
         self.dataset_run.output_files.add(*new_checksum_files)
+
+    def _ensure_model_files(self):
+        """
+        Download any model files needed.
+
+        Currently, the only needed model is the Columbia Geon Segmentation Model.
+        """
+        # Check if models dir already exists, and if so, exit
+        self.models_dir = Path('/tmp/danesfield_models')
+        if self.models_dir.exists():
+            return
+
+        # Else, download models
+        url = 'https://data.kitware.com/api/v1/resource/download'
+        params = {'resources': json.dumps({'folder': ['5fa1b6c850a41e3d192de93b']})}
+
+        logger.info('Downloading model files. This may take a while...')
+
+        # Download file
+        _, folder_zip_path = tempfile.mkstemp()
+        with requests.get(url, params=params, stream=True) as r:
+            with open(folder_zip_path, 'wb') as f:
+                shutil.copyfileobj(r.raw, f)
+
+        # Extract folder from zip
+        self.models_dir.mkdir()
+        with zipfile.ZipFile(folder_zip_path) as z:
+            z.extractall(self.models_dir)
 
     def _download_dataset(self):
         """Download the dataset."""
@@ -94,16 +123,18 @@ class ManagedTask(celery.Task):
         self.dataset: Dataset = self.dataset_run.dataset
 
         # Ensure necessary files and directories exist
-        self.models_dir = Path(ensure_model_files())
         self.output_dir = Path(tempfile.mkdtemp())
         self._download_dataset()
+        self._ensure_model_files()
+
+        # Write config file
         self._write_config_file()
 
     def _cleanup(self):
         """Perform any necessary cleanup."""
         # Remove dirs
+        # Don't remove self.model_dir, as other tasks will need it
         shutil.rmtree(self.output_dir, ignore_errors=True)
-        shutil.rmtree(self.models_dir, ignore_errors=True)
 
         # Remove files
         self.config_path.unlink(missing_ok=True)
@@ -129,7 +160,7 @@ class ManagedTask(celery.Task):
 
     def __call__(self, **kwargs):
         # Setup
-        self._setup()
+        self._setup(**kwargs)
 
         # Run task
         return self.run(**kwargs)
@@ -143,6 +174,7 @@ def run_danesfield(self: ManagedTask, **kwargs):
     from docker.types import DeviceRequest, Mount
 
     # Construct container arguments
+    # TODO: Fix command
     command = ['touch', f'{self.output_dir}/test.txt']
     paths_to_mount = (self.output_dir, self.models_dir, self.config_path, self.point_cloud_path)
     mounts = [Mount(target=str(path), source=str(path), type='bind') for path in paths_to_mount]
