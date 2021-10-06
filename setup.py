@@ -43,7 +43,7 @@ setup(
         'django-extensions',
         'django-filter',
         'django-oauth-toolkit',
-        'django-rgd',
+        'django-rgd>=0.2.6dev6',
         'djangorestframework',
         'drf-yasg',
         # Production-only

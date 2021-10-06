@@ -1,3 +1,4 @@
+import configparser
 import os
 from pathlib import Path
 import shutil
@@ -6,12 +7,15 @@ from typing import List, Set
 
 from billiard.einfo import ExceptionInfo
 import celery
+from celery.utils.log import get_task_logger
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rgd.models.common import ChecksumFile
 
 from danesfield.core.models import Dataset, DatasetRun
 
-from .helpers import DanesfieldRunData, ensure_model_files, write_config_file
+from .helpers import ensure_model_files
+
+logger = get_task_logger(__name__)
 
 
 class ManagedTask(celery.Task):
@@ -33,9 +37,8 @@ class ManagedTask(celery.Task):
                     )
 
                 checksum_file.save()
+                existing_filenames.add(f)
                 new_checksum_files.append(checksum_file)
-
-            existing_filenames.update(new_filenames)
 
         self.dataset_run.output_files.add(*new_checksum_files)
 
@@ -55,6 +58,46 @@ class ManagedTask(celery.Task):
         with os.fdopen(fd, 'wb') as point_cloud_in:
             shutil.copyfileobj(file, point_cloud_in)
             point_cloud_in.flush()
+
+    def _write_config_file(self):
+        """Create and write the config file."""
+        config = configparser.ConfigParser()
+        config['paths'] = {
+            'p3d_path': self.point_cloud_path,
+            'work_dir': self.output_dir,
+            'rpc_dir': tempfile.mkdtemp(),
+        }
+
+        config['aoi'] = {'name': self.dataset.name.replace(' ', '_')}
+        config['params'] = {'gsd': 0.25}
+        config['roof'] = {
+            'model_dir': f'{self.models_dir}/Columbia Geon Segmentation Model',
+            'model_prefix': 'dayton_geon',
+        }
+
+        # Write config to disk
+        self.config_path = Path(tempfile.mkstemp()[1])
+        with open(self.config_path, 'w') as configfile:
+            config.write(configfile)
+
+    def _setup(self, **kwargs):
+        # Set run on task instance
+        self.dataset_run: DatasetRun = DatasetRun.objects.select_related(
+            'dataset', 'dataset__point_cloud_file'
+        ).get(pk=kwargs['dataset_run_id'])
+
+        # Set run status
+        self.dataset_run.status = DatasetRun.Status.RUNNING
+        self.dataset_run.save()
+
+        # Set step on task instance
+        self.dataset: Dataset = self.dataset_run.dataset
+
+        # Ensure necessary files and directories exist
+        self.models_dir = Path(ensure_model_files())
+        self.output_dir = Path(tempfile.mkdtemp())
+        self._download_dataset()
+        self._write_config_file()
 
     def _cleanup(self):
         """Perform any necessary cleanup."""
@@ -82,61 +125,43 @@ class ManagedTask(celery.Task):
         self.dataset_run.output_log = retval
         self.dataset_run.save()
 
-        # Cleanup
         self._cleanup()
 
     def __call__(self, **kwargs):
-        # Set run on task instance
-        self.dataset_run: DatasetRun = DatasetRun.objects.select_related(
-            'dataset', 'dataset__point_cloud_file'
-        ).get(pk=kwargs['dataset_run_id'])
-
-        # Set run status
-        self.dataset_run.status = DatasetRun.Status.RUNNING
-        self.dataset_run.save()
-
-        # Set step on task instance
-        self.dataset: Dataset = self.dataset_run.dataset
-
-        # Ensure necessary files and directories exist
-        self.models_dir = Path(ensure_model_files())
-        self.output_dir = Path(tempfile.mkdtemp())
-        self.config_path = Path(tempfile.mkstemp()[1])
-        self._download_dataset()
-
-        # Construct data
-        data = DanesfieldRunData(
-            self.dataset,
-            self.dataset_run,
-            self.output_dir,
-            self.models_dir,
-            self.point_cloud_path,
-            self.config_path,
-        )
+        # Setup
+        self._setup()
 
         # Run task
-        return self.run(data=data, **kwargs)
+        return self.run(**kwargs)
 
 
-@celery.shared_task(base=ManagedTask)
-def run_danesfield(**kwargs):
+@celery.shared_task(base=ManagedTask, bind=True)
+def run_danesfield(self: ManagedTask, **kwargs):
     # Import docker here to django can import task without docker
     import docker
+    from docker.errors import ImageNotFound
     from docker.types import DeviceRequest, Mount
 
-    data: DanesfieldRunData = kwargs['data']
-    write_config_file(data)
-
     # Construct container arguments
-    command = ['touch', f'{data.output_dir}/test.txt']
-    paths_to_mount = (data.output_dir, data.models_dir, data.config_path, data.point_cloud_path)
+    command = ['touch', f'{self.output_dir}/test.txt']
+    paths_to_mount = (self.output_dir, self.models_dir, self.config_path, self.point_cloud_path)
     mounts = [Mount(target=str(path), source=str(path), type='bind') for path in paths_to_mount]
     device_requests = [DeviceRequest(count=-1, capabilities=[['gpu']])]
 
     # Instantiate docker client
     client = docker.from_env()
+    danesfield_image_id = 'kitware/danesfield'
+
+    # Get or pull image
+    try:
+        image = client.images.get(danesfield_image_id)
+    except ImageNotFound:
+        # TODO: Fix logger to save all logs to output
+        logger.info(f'Pulling {danesfield_image_id}. This may take a while...')
+        image = client.images.pull(danesfield_image_id)
+
     output = client.containers.run(
-        'alpine',
+        image,
         command=command,
         mounts=mounts,
         device_requests=device_requests,
