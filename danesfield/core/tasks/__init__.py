@@ -153,7 +153,6 @@ class ManagedTask(celery.Task):
 
         # Mark dataset run as succeeded and save logs
         self.dataset_run.status = DatasetRun.Status.SUCCEEDED
-        self.dataset_run.output_log = retval
         self.dataset_run.save()
 
         self._cleanup()
@@ -170,7 +169,8 @@ class ManagedTask(celery.Task):
 def run_danesfield(self: ManagedTask, **kwargs):
     # Import docker here to django can import task without docker
     import docker
-    from docker.errors import ImageNotFound
+    from docker.errors import DockerException, ImageNotFound
+    from docker.models.containers import Container
     from docker.types import DeviceRequest, Mount
 
     # Construct container arguments
@@ -191,11 +191,24 @@ def run_danesfield(self: ManagedTask, **kwargs):
         logger.info(f'Pulling {danesfield_image_id}. This may take a while...')
         image = client.images.pull(danesfield_image_id)
 
-    output = client.containers.run(
-        image,
-        command=command,
-        mounts=mounts,
-        device_requests=device_requests,
-    )
+    # Run container
+    try:
+        container: Container = client.containers.run(
+            image, command=command, mounts=mounts, device_requests=device_requests, detach=True
+        )
+    except DockerException as e:
+        self.dataset_run.output_log = str(e)
+        self.dataset_run.save()
+        return e.status_code
 
-    return output.decode('utf-8')
+    # Capture live logs
+    self.dataset_run.output_log = ''
+    output_generator = container.logs(stream=True)
+    for log in output_generator:
+        # TODO: Probably inefficient, fix
+        self.dataset_run.output_log += log.decode('utf-8')
+        self.dataset_run.save()
+
+    # Return status code
+    res = container.wait()
+    return res['StatusCode']
