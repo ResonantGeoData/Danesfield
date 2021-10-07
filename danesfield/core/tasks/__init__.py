@@ -92,7 +92,7 @@ class ManagedTask(celery.Task):
         """Create and write the config file."""
         config = configparser.ConfigParser()
         config['paths'] = {
-            'p3d_path': self.point_cloud_path,
+            'p3d_fpath': self.point_cloud_path,
             'work_dir': self.output_dir,
             'rpc_dir': tempfile.mkdtemp(),
         }
@@ -174,8 +174,7 @@ def run_danesfield(self: ManagedTask, **kwargs):
     from docker.types import DeviceRequest, Mount
 
     # Construct container arguments
-    # TODO: Fix command
-    command = ['touch', f'{self.output_dir}/test.txt']
+    command = ['python', '/danesfield/tools/run_danesfield.py', str(self.config_path)]
     paths_to_mount = (self.output_dir, self.models_dir, self.config_path, self.point_cloud_path)
     mounts = [Mount(target=str(path), source=str(path), type='bind') for path in paths_to_mount]
     device_requests = [DeviceRequest(count=-1, capabilities=[['gpu']])]
