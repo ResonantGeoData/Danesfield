@@ -81,7 +81,7 @@ class ManagedTask(celery.Task):
             return
 
         # Imageless case
-        fd, path = tempfile.mkstemp()
+        fd, path = tempfile.mkstemp(suffix='.las')
         self.point_cloud_path = Path(path)
 
         file = self.dataset.point_cloud_file.file
@@ -106,7 +106,7 @@ class ManagedTask(celery.Task):
         }
 
         # Write config to disk
-        self.config_path = Path(tempfile.mkstemp()[1])
+        self.config_path = Path(tempfile.mkstemp(suffix='.ini')[1])
         with open(self.config_path, 'w') as configfile:
             config.write(configfile)
 
