@@ -4,6 +4,24 @@ from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile
 
 
+class DatasetRun(TimeStampedModel):
+    """A run of the danesfield algorithm on a dataset."""
+
+    class Status(models.TextChoices):
+        CREATED = 'created', _('Created but not queued')
+        QUEUED = 'queued', _('Queued for processing')
+        RUNNING = 'running', _('Running')
+        FAILED = 'failed', _('Failed')
+        SUCCEEDED = 'success', _('Succeeded')
+
+    dataset = models.ForeignKey('Dataset', related_name='runs', on_delete=models.CASCADE)
+    status = models.CharField(choices=Status.choices, default=Status.QUEUED, max_length=16)
+
+    # Outputs
+    output_log = models.TextField()
+    output_files = models.ManyToManyField(ChecksumFile)
+
+
 class Dataset(TimeStampedModel):
     name = models.CharField(max_length=255, unique=True)
 
@@ -27,20 +45,12 @@ class Dataset(TimeStampedModel):
             )
         ]
 
+    def run_danesfield(self) -> DatasetRun:
+        """Dispatch a run of this dataset, returning the DatasetRun object."""
+        # Prevent circular import
+        from danesfield.core.tasks import run_danesfield
 
-class DatasetRun(TimeStampedModel):
-    """A run of the danesfield algorithm on a dataset."""
+        run: DatasetRun = DatasetRun.objects.create(dataset=self)
+        run_danesfield.delay(dataset_run_id=run.pk)
 
-    class Status(models.TextChoices):
-        CREATED = 'created', _('Created but not queued')
-        QUEUED = 'queued', _('Queued for processing')
-        RUNNING = 'running', _('Running')
-        FAILED = 'failed', _('Failed')
-        SUCCEEDED = 'success', _('Succeeded')
-
-    dataset = models.ForeignKey(Dataset, related_name='runs', on_delete=models.CASCADE)
-    status = models.CharField(choices=Status.choices, default=Status.QUEUED, max_length=16)
-
-    # Outputs
-    output_log = models.TextField()
-    output_files = models.ManyToManyField(ChecksumFile)
+        return run

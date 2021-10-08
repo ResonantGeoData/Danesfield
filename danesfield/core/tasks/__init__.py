@@ -14,6 +14,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 import requests
 from rgd.models.common import ChecksumFile
 
+# Prevent circular import
 from danesfield.core.models import Dataset, DatasetRun
 
 logger = get_task_logger(__name__)
