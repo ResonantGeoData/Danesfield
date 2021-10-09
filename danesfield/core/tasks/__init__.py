@@ -143,8 +143,11 @@ class ManagedTask(celery.Task):
             self.point_cloud_path.unlink(missing_ok=True)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo: ExceptionInfo):
+        if not self.dataset_run.output_log:
+            self.dataset_run.output_log = ""
+
+        self.dataset_run.output_log += einfo.traceback
         self.dataset_run.status = DatasetRun.Status.FAILED
-        self.dataset_run.output_log = einfo.traceback
         self.dataset_run.save()
 
         self._cleanup()
