@@ -201,7 +201,8 @@ def run_danesfield(self: ManagedTask, **kwargs):
             image, command=command, mounts=mounts, device_requests=device_requests, detach=True
         )
     except DockerException as e:
-        self.dataset_run.output_log = str(e)
+        # Replace null characters with � character
+        self.dataset_run.output_log = str(e).replace("\x00", "\uFFFD")
         self.dataset_run.save()
         return e.status_code
 
@@ -210,7 +211,8 @@ def run_danesfield(self: ManagedTask, **kwargs):
     output_generator = container.logs(stream=True)
     for log in output_generator:
         # TODO: Probably inefficient, fix
-        self.dataset_run.output_log += log.decode('utf-8')
+        # Replace null characters with � character
+        self.dataset_run.output_log += log.decode('utf-8').replace("\x00", "\uFFFD")
         self.dataset_run.save()
 
     # Return status code
