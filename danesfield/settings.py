@@ -11,9 +11,10 @@ from composed_configuration import (
     TestingBaseConfiguration,
 )
 from configurations import values
+from rgd.configuration import GeoDjangoMixin
 
 
-class DanesfieldMixin(ConfigMixin):
+class DanesfieldMixin(GeoDjangoMixin, ConfigMixin):
     WSGI_APPLICATION = 'danesfield.wsgi.application'
     ROOT_URLCONF = 'danesfield.urls'
 
@@ -27,7 +28,7 @@ class DanesfieldMixin(ConfigMixin):
         ] + configuration.INSTALLED_APPS
 
         # Install additional apps
-        configuration.INSTALLED_APPS += ['s3_file_field', 'django.contrib.gis', 'rgd']
+        configuration.INSTALLED_APPS += ['s3_file_field', 'rgd']
         configuration.MIDDLEWARE += ['crum.CurrentRequestUserMiddleware']
         configuration.DATABASES = values.DatabaseURLValue(
             environ_name='DATABASE_URL',
@@ -43,7 +44,7 @@ class DevelopmentConfiguration(DanesfieldMixin, DevelopmentBaseConfiguration):
 
 
 class TestingConfiguration(DanesfieldMixin, TestingBaseConfiguration):
-    pass
+    CELERY_TASK_ALWAYS_EAGER = True
 
 
 class ProductionConfiguration(DanesfieldMixin, ProductionBaseConfiguration):

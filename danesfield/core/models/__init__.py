@@ -1,3 +1,3 @@
-from .image import Image
+from .dataset import Dataset, DatasetRun
 
-__all__ = ['Image']
+__all__ = ['Dataset', 'DatasetRun']
