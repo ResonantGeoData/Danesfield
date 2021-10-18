@@ -17,7 +17,8 @@ def succeeding_task(self: ManagedTask, **kwargs):
     with open(test_file, 'w') as outfile:
         outfile.write('Test Output')
 
-    return 'OUTPUT!'
+    # Test that on_success saves this
+    self.dataset_run.output_log = 'OUTPUT!'
 
 
 @celery.shared_task(base=ManagedTask)
