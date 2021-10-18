@@ -7,15 +7,11 @@ from rgd.models.common import ChecksumFile
 
 from danesfield.core.models.dataset import DatasetRun
 from danesfield.core.tasks import ManagedTask
-from danesfield.core.tasks.helpers import DanesfieldRunData
 
 
-@celery.shared_task(base=ManagedTask)
-def succeeding_task(**kwargs):
-    data: DanesfieldRunData = kwargs['data']
-
-    output_dir = data.output_dir
-    test_file = pathlib.Path(f'{output_dir}/test.txt')
+@celery.shared_task(base=ManagedTask, bind=True)
+def succeeding_task(self: ManagedTask, **kwargs):
+    test_file = pathlib.Path(f'{self.output_dir}/test.txt')
     test_file.touch()
 
     with open(test_file, 'w') as outfile:
