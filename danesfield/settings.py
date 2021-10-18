@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from typing import Type
 
 from composed_configuration import (
     ComposedConfiguration,
@@ -13,29 +11,7 @@ from composed_configuration import (
     TestingBaseConfiguration,
 )
 from configurations import values
-
-
-class GeoDjangoMixin(ConfigMixin):
-    @staticmethod
-    def before_binding(configuration: Type[ComposedConfiguration]):
-        configuration.INSTALLED_APPS += ['django.contrib.gis']
-        try:
-            import re
-
-            import osgeo
-
-            libsdir = os.path.join(
-                os.path.dirname(os.path.dirname(osgeo._gdal.__file__)), 'GDAL.libs'
-            )
-            libs = {
-                re.split(r'-|\.', name)[0]: os.path.join(libsdir, name)
-                for name in os.listdir(libsdir)
-            }
-            configuration.GDAL_LIBRARY_PATH = libs['libgdal']
-            configuration.GEOS_LIBRARY_PATH = libs['libgeos_c']
-        except Exception:
-            # TODO: Log that we aren't using the expected GDAL wheel?
-            pass
+from rgd.configuration import GeoDjangoMixin
 
 
 class DanesfieldMixin(GeoDjangoMixin, ConfigMixin):
