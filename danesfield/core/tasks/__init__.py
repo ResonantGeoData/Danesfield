@@ -144,7 +144,7 @@ class ManagedTask(celery.Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo: ExceptionInfo):
         if not self.dataset_run.output_log:
-            self.dataset_run.output_log = ""
+            self.dataset_run.output_log = ''
 
         self.dataset_run.output_log += einfo.traceback
         self.dataset_run.status = DatasetRun.Status.FAILED
@@ -202,7 +202,7 @@ def run_danesfield(self: ManagedTask, **kwargs):
         )
     except DockerException as e:
         # Replace null characters with � character
-        self.dataset_run.output_log = str(e).replace("\x00", "\uFFFD")
+        self.dataset_run.output_log = str(e).replace('\x00', '\uFFFD')
         self.dataset_run.save()
         return e.status_code
 
@@ -212,7 +212,7 @@ def run_danesfield(self: ManagedTask, **kwargs):
     for log in output_generator:
         # TODO: Probably inefficient, fix
         # Replace null characters with � character
-        self.dataset_run.output_log += log.decode('utf-8').replace("\x00", "\uFFFD")
+        self.dataset_run.output_log += log.decode('utf-8').replace('\x00', '\uFFFD')
         self.dataset_run.save()
 
     # Return status code
