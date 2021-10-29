@@ -8,12 +8,14 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from rgd.serializers import ChecksumFileSerializer
 
 from danesfield.core.models.dataset import Dataset, DatasetRun
 from danesfield.core.views.serializers import (
     DatasetRunLogsSerializer,
     DatasetRunSerializer,
     DatasetSerializer,
+    LimitOffsetSerializer,
 )
 
 
@@ -61,3 +63,24 @@ class DatasetRunViewSet(NestedViewSetMixin, ReadOnlyModelViewSet):
             response_text = '\n'.join(lines)
 
         return Response(response_text, content_type='text/plain')
+
+    @swagger_auto_schema(
+        query_serializer=LimitOffsetSerializer(), responses={200: ChecksumFileSerializer(many=True)}
+    )
+    @action(detail=True, methods=['GET'])
+    def output(self, request: Request, parent_lookup_dataset__pk: str, pk: str):
+        """Return the output files of a dataset run as a list of files."""
+        # Fetch run
+        run: DatasetRun = get_object_or_404(
+            DatasetRun, dataset__pk=parent_lookup_dataset__pk, pk=pk
+        )
+        queryset = run.output_files.all()
+
+        # Paginate
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = ChecksumFileSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ChecksumFileSerializer(queryset, many=True)
+        return Response(serializer.data)
