@@ -14,6 +14,16 @@ class DatasetSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['created', 'modified']
 
+    def validate(self, data):
+        imageless = data.get('imageless', True)
+        if imageless and data.get('point_cloud_file') is None:
+            raise serializers.ValidationError('Must specify point_cloud_file if imageless=True')
+
+        if not imageless and not data.get('files'):
+            raise serializers.ValidationError('Must specify files if imageless=False')
+
+        return data
+
 
 class DatasetRunSerializer(serializers.ModelSerializer):
     class Meta:
