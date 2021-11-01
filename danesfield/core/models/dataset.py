@@ -28,11 +28,15 @@ class Dataset(TimeStampedModel):
     # For imageless run
     imageless = models.BooleanField(default=True)
     point_cloud_file = models.ForeignKey(
-        ChecksumFile, on_delete=models.SET_NULL, null=True, related_name='imageless_datasets'
+        ChecksumFile,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='imageless_datasets',
     )
 
     # For image run
-    files = models.ManyToManyField(ChecksumFile, related_name='image_datasets')
+    files = models.ManyToManyField(ChecksumFile, blank=True, related_name='image_datasets')
 
     class Meta:
         constraints = [
