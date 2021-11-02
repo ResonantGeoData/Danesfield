@@ -9,9 +9,15 @@ This is the simplest configuration for developers to start with.
    and follow the prompts to create your own user
 
 ### Run Application
+**Note**: Even though most of the application will be run with `docker-compose`, the `celery` worker must still be run natively, as it itself makes use of `docker`.
+
+To run the application, do the following:
 1. Run `docker-compose up`
-2. Access the site, starting at http://localhost:8000/admin/
-3. When finished, use `Ctrl+C`
+2. In a seperate window, run the following commands:
+   1. `source ./dev/export-env.sh`
+   2. `celery --app danesfield.celery worker --loglevel INFO --without-heartbeat`
+3. Access the site, starting at http://localhost:8000/admin/
+4. When finished, use `Ctrl+C`
 
 ### Application Maintenance
 Occasionally, new package dependencies or schema changes will necessitate
