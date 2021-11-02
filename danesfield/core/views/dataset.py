@@ -1,5 +1,5 @@
 from django.utils.encoding import smart_str
-from drf_yasg.utils import swagger_auto_schema
+from drf_yasg.utils import no_body, swagger_auto_schema
 from rest_framework import renderers
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -31,6 +31,14 @@ class DatasetViewSet(ModelViewSet):
     queryset = Dataset.objects.all()
     serializer_class = DatasetSerializer
     pagination_class = LimitOffsetPagination
+
+    @swagger_auto_schema(request_body=no_body)
+    @action(detail=True, methods=['POST'])
+    def run_danesfield(self, request: Request, pk: int):
+        """Run the Danesfield algorithm on a dataset, returning the resulting DatasetRun object."""
+        dataset: Dataset = get_object_or_404(Dataset, pk=pk)
+        dataset_run: DatasetRun = dataset.run_danesfield()
+        return Response(DatasetRunSerializer(dataset_run).data)
 
 
 class DatasetRunViewSet(NestedViewSetMixin, ReadOnlyModelViewSet):
