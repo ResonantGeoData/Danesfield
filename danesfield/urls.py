@@ -3,9 +3,20 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
-from rest_framework import permissions, routers
+from rest_framework import permissions
+from rest_framework_extensions.routers import ExtendedSimpleRouter
 
-router = routers.SimpleRouter()
+from danesfield.core.views.dataset import DatasetRunViewSet, DatasetViewSet
+
+router = ExtendedSimpleRouter()
+dataset_routes = router.register('datasets', DatasetViewSet)
+dataset_routes.register(
+    'runs',
+    DatasetRunViewSet,
+    basename='run',
+    parents_query_lookups=[f'dataset__{DatasetViewSet.lookup_field}'],
+)
+
 
 # OpenAPI generation
 schema_view = get_schema_view(
@@ -22,6 +33,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/docs/redoc/', schema_view.with_ui('redoc'), name='docs-redoc'),
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
+    path('', include('rgd.urls')),
 ]
 
 if settings.DEBUG:

@@ -43,8 +43,9 @@ setup(
         'django-extensions',
         'django-filter',
         'django-oauth-toolkit',
-        'django-rgd>=0.2.6dev6',
+        'django-rgd[configuration]>=0.2.6dev6',
         'djangorestframework',
+        'drf-extensions',
         'drf-yasg',
         # Production-only
         'django-composed-configuration[prod]',
