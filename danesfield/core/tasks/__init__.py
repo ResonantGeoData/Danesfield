@@ -81,13 +81,8 @@ class ManagedTask(celery.Task):
             return
 
         # Imageless case
-        fd, path = tempfile.mkstemp(suffix='.las')
-        self.point_cloud_path = Path(path)
-
-        file = self.dataset.point_cloud_file.file
-        with os.fdopen(fd, 'wb') as point_cloud_in:
-            shutil.copyfileobj(file, point_cloud_in)
-            point_cloud_in.flush()
+        file = self.dataset.point_cloud_file
+        self.point_cloud_path = file.download_to_local_path(tempfile.mkdtemp())
 
     def _write_config_file(self):
         """Create and write the config file."""
