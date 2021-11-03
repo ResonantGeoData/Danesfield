@@ -51,6 +51,8 @@ setup(
         'django-composed-configuration[prod]',
         'django-s3-file-field[boto3]',
         'gunicorn',
+        # TEMP: Remove once fixed in upstream django-rgd
+        'psutil',
     ],
     dependency_links=['https://girder.github.io/large_image_wheels'],
     extras_require={
