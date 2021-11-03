@@ -81,8 +81,9 @@ class ManagedTask(celery.Task):
             return
 
         # Imageless case
-        file = self.dataset.point_cloud_file
-        self.point_cloud_path = file.download_to_local_path(tempfile.mkdtemp())
+        self.point_cloud_path = self.dataset.point_cloud_file.download_to_local_path(
+            tempfile.mkdtemp()
+        )
 
     def _write_config_file(self):
         """Create and write the config file."""
