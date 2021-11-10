@@ -10,7 +10,7 @@ from danesfield.core.models import Dataset, DatasetRun
 TEST_DATA_DIRECTORY = (
     Path(__file__).parent.parent.parent.parent.parent.resolve()
     / 'dev'
-    / 'test_data'
+    / 'sample_data'
     / 'TilesetWithDiscreteLOD'
 )
 
