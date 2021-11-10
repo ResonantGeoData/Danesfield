@@ -1,4 +1,7 @@
+from django.db.models.fields.files import FieldFile
+from django.shortcuts import redirect
 from django.utils.encoding import smart_str
+from drf_yasg import openapi
 from drf_yasg.utils import no_body, swagger_auto_schema
 from rest_framework import renderers
 from rest_framework.decorators import action
@@ -8,6 +11,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from rgd.models.common import ChecksumFile
 from rgd.serializers import ChecksumFileSerializer
 
 from danesfield.core.models.dataset import Dataset, DatasetRun
@@ -92,3 +96,18 @@ class DatasetRunViewSet(NestedViewSetMixin, ReadOnlyModelViewSet):
 
         serializer = ChecksumFileSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    @swagger_auto_schema(responses={302: openapi.Response('Redirect to file download')})
+    @action(detail=True, methods=['GET'], url_path='output/(?P<path>.+)')
+    def output_file(self, request: Request, parent_lookup_dataset__pk: str, pk: str, path: str):
+        """Download an output file from a dataset run."""
+        # Fetch run
+        run: DatasetRun = get_object_or_404(
+            DatasetRun, dataset__pk=parent_lookup_dataset__pk, pk=pk
+        )
+
+        # Fetch ChecksumFile with the given path
+        checksum_file: ChecksumFile = get_object_or_404(run.output_files, name=path)
+        file: FieldFile = checksum_file.file
+
+        return redirect(file.url, permanent=False)
