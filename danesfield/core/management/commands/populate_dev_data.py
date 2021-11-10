@@ -20,7 +20,7 @@ test_filenames = ['tileset.json', 'dragon_high.b3dm', 'dragon_low.b3dm', 'dragon
 @click.command()
 def populate_dev_data():
     point_cloud_file = ChecksumFile.objects.create(
-        name='TilesetWithDiscreteLOD.txt',
+        name='TilesetWithDiscreteLOD.las',
         file=ContentFile("i'm a point cloud (not really)").read(),
     )
     dataset: Dataset = Dataset.objects.create(
