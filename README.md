@@ -92,3 +92,7 @@ Useful sub-commands include:
 
 To automatically reformat all code to comply with
 some (but not all) of the style checks, run `tox -e format`.
+
+
+### Developer Scripts
+See `DEVELOPMENT.md` for an overview of included Django manage.py scripts.
