@@ -53,3 +53,14 @@ class DatasetRunFactory(factory.django.DjangoModelFactory):
         model = DatasetRun
 
     dataset = factory.SubFactory(DatasetFactory)
+
+    # Simulate many-to-many relationship
+    # https://factoryboy.readthedocs.io/en/stable/recipes.html#simple-many-to-many-relationship
+    @factory.post_generation
+    def output_files(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for file in extracted:
+                self.output_files.add(file)
