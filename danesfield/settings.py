@@ -28,7 +28,7 @@ class DanesfieldMixin(GeoDjangoMixin, ConfigMixin):
         ] + configuration.INSTALLED_APPS
 
         # Install additional apps
-        configuration.INSTALLED_APPS += ['s3_file_field', 'rgd']
+        configuration.INSTALLED_APPS += ['s3_file_field', 'rgd', 'rgd_3d', 'rgd_imagery']
         configuration.MIDDLEWARE += ['crum.CurrentRequestUserMiddleware']
         configuration.DATABASES = values.DatabaseURLValue(
             environ_name='DATABASE_URL',
