@@ -32,7 +32,7 @@ def _ingest_checksum_files(files: List[ChecksumFile]):
         extension: str = Path(checksum_file.name).suffix
 
         if not extension:
-            break
+            continue
 
         if extension in RGD_IMAGERY_EXTENSIONS:
             images.append(Image(file=checksum_file))
