@@ -37,7 +37,7 @@ def test_successful_dataset_run_output_rest(
     resp: Response = requests.get(redirect_resp.url)
 
     # Get the same file directly from the database
-    file = successful_dataset_run.output_files.first().file.open('r')
+    file = successful_dataset_run.output_files.get(name='tiler/tileset.json').file.open('r')
 
     assert resp.text == file.read().decode('utf-8')
 
