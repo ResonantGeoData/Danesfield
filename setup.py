@@ -45,6 +45,8 @@ setup(
         'django-filter',
         'django-oauth-toolkit',
         'django-rgd[configuration]>=0.2.6dev6',
+        'django-rgd-3d>=0.2.7',
+        'django-rgd-imagery>=0.2.7',
         'djangorestframework',
         'drf-extensions',
         'drf-yasg',

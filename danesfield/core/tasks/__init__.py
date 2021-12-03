@@ -13,11 +13,37 @@ from celery.utils.log import get_task_logger
 from django.core.files.uploadedfile import SimpleUploadedFile
 import requests
 from rgd.models.common import ChecksumFile
+from rgd_3d.models import PointCloud
+from rgd_imagery.models.base import Image, ImageSet
 
 # Prevent circular import
 from danesfield.core.models import Dataset, DatasetRun
 
 logger = get_task_logger(__name__)
+
+RGD_IMAGERY_EXTENSIONS = ('.tif', '.png')
+RGD_3D_EXTENSIONS = ('.ply', '.obj')
+
+
+def _ingest_checksum_files(files: List[ChecksumFile]):
+    images: List[Image] = []
+    meshes: List[PointCloud] = []
+    for checksum_file in files:
+        extension: str = Path(checksum_file.name).suffix
+
+        if not extension:
+            continue
+
+        if extension in RGD_IMAGERY_EXTENSIONS:
+            images.append(Image(file=checksum_file))
+        elif extension in RGD_3D_EXTENSIONS:
+            meshes.append(PointCloud(file=checksum_file))
+
+    if images:
+        ImageSet.objects.create().images.set(Image.objects.bulk_create(images))
+
+    if meshes:
+        PointCloud.objects.bulk_create(meshes)
 
 
 class ManagedTask(celery.Task):
@@ -43,6 +69,7 @@ class ManagedTask(celery.Task):
                 new_checksum_files.append(checksum_file)
 
         self.dataset_run.output_files.add(*new_checksum_files)
+        _ingest_checksum_files(new_checksum_files)
 
     def _ensure_model_files(self):
         """

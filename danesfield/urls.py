@@ -34,6 +34,8 @@ urlpatterns = [
     path('api/docs/redoc/', schema_view.with_ui('redoc'), name='docs-redoc'),
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
     path('', include('rgd.urls')),
+    path('', include('rgd_3d.urls')),
+    path('', include('rgd_imagery.urls')),
 ]
 
 if settings.DEBUG:
