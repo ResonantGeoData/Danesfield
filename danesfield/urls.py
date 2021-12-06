@@ -3,20 +3,9 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
+from rdoasis.algorithms.views.algorithms import AlgorithmTaskViewSet, DatasetViewSet
 from rest_framework import permissions
 from rest_framework_extensions.routers import ExtendedSimpleRouter
-
-from danesfield.core.views.dataset import DatasetRunViewSet, DatasetViewSet
-
-router = ExtendedSimpleRouter()
-dataset_routes = router.register('datasets', DatasetViewSet)
-dataset_routes.register(
-    'runs',
-    DatasetRunViewSet,
-    basename='run',
-    parents_query_lookups=[f'dataset__{DatasetViewSet.lookup_field}'],
-)
-
 
 # OpenAPI generation
 schema_view = get_schema_view(
@@ -25,12 +14,16 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
+oasis_router = ExtendedSimpleRouter()
+oasis_router.register('datasets', DatasetViewSet, basename='dataset')
+oasis_router.register('algorithm_tasks', AlgorithmTaskViewSet, basename='task')
+
 urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('admin/', admin.site.urls),
     path('api/s3-upload/', include('s3_file_field.urls')),
-    path('api/', include(router.urls)),
+    path('api/', include(oasis_router.urls)),
     path('api/docs/redoc/', schema_view.with_ui('redoc'), name='docs-redoc'),
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
     path('', include('rgd.urls')),

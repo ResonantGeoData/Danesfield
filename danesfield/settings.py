@@ -25,6 +25,7 @@ class DanesfieldMixin(GeoDjangoMixin, ConfigMixin):
         # Install local apps first, to ensure any overridden resources are found first
         configuration.INSTALLED_APPS = [
             'danesfield.core.apps.CoreConfig',
+            'rdoasis.algorithms.apps.AlgorithmsConfig',
         ] + configuration.INSTALLED_APPS
 
         # Install additional apps
