@@ -7,6 +7,8 @@ from rdoasis.algorithms.views.algorithms import AlgorithmTaskViewSet, DatasetVie
 from rest_framework import permissions
 from rest_framework_extensions.routers import ExtendedSimpleRouter
 
+from danesfield.core.views import DanesfieldAlgorithmViewSet
+
 # OpenAPI generation
 schema_view = get_schema_view(
     openapi.Info(title='Danesfield', default_version='v1', description=''),
@@ -16,7 +18,8 @@ schema_view = get_schema_view(
 
 oasis_router = ExtendedSimpleRouter()
 oasis_router.register('datasets', DatasetViewSet, basename='dataset')
-oasis_router.register('algorithm_tasks', AlgorithmTaskViewSet, basename='task')
+oasis_router.register('tasks', AlgorithmTaskViewSet, basename='task')
+oasis_router.register('danesfield', DanesfieldAlgorithmViewSet, basename='danesfield')
 
 urlpatterns = [
     path('accounts/', include('allauth.urls')),
