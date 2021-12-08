@@ -4,17 +4,20 @@ import json
 from pathlib import Path
 import shutil
 import tempfile
-from typing import List
+from typing import List, Union
 import zipfile
 
 import celery
 from celery.utils.log import get_task_logger
+from rdoasis.algorithms.models import AlgorithmTask
 from rdoasis.algorithms.tasks.algorithms import _run_algorithm_task
 from rdoasis.algorithms.tasks.common import ManagedTask
 import requests
 from rgd.models.common import ChecksumFile
 from rgd_3d.models import Mesh3D
 from rgd_imagery.models.base import Image, ImageSet
+
+from danesfield.core.utils import danesfield_algorithm
 
 logger = get_task_logger(__name__)
 
@@ -112,5 +115,10 @@ class DanesfieldTask(ManagedTask):
 
 
 @celery.shared_task(base=DanesfieldTask, bind=True)
-def run_danesfield(self: DanesfieldTask, *args, **kwargs):
+def run_danesfield_task(self: DanesfieldTask, *args, **kwargs):
     _run_algorithm_task(self, *args, **kwargs)
+
+
+def run_danesfield(input_dataset_pk: Union[str, int]) -> AlgorithmTask:
+    danesfield = danesfield_algorithm()
+    return danesfield.run(input_dataset_pk, celery_task=run_danesfield_task)

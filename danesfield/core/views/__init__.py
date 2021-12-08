@@ -1,8 +1,6 @@
 from drf_yasg.utils import swagger_auto_schema
-from rdoasis.algorithms.models import Algorithm
 from rdoasis.algorithms.views.serializers import AlgorithmRunSerializer, AlgorithmTaskSerializer
 from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
@@ -17,9 +15,5 @@ class DanesfieldAlgorithmViewSet(ViewSet):
         serializer = AlgorithmRunSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        alg: Algorithm = get_object_or_404(Algorithm, pk=1)
-        algorithm_task = alg.run(
-            serializer.validated_data['input_dataset'], celery_task=run_danesfield
-        )
-
-        return Response(AlgorithmTaskSerializer(algorithm_task).data)
+        task = run_danesfield(serializer.validated_data['input_dataset'])
+        return Response(AlgorithmTaskSerializer(task).data)
