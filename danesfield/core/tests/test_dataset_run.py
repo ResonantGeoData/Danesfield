@@ -6,7 +6,7 @@ import requests
 from requests.models import Response
 from rest_framework.test import APIClient
 from rgd.models.common import ChecksumFile
-from rgd_3d.models import PointCloud
+from rgd_3d.models import Mesh3D
 from rgd_imagery.models import Image
 
 from danesfield.core.models.dataset import DatasetRun
@@ -65,7 +65,7 @@ def test_failed_dataset_run_output_rest(
 
 
 # Set transaction=True to ensure the DB is flushed prior to this test.
-# This ensures that the Images and PointClouds being tested are
+# This ensures that the Images and Mesh3Ds being tested are
 # created during this test and not leftover from another.
 @pytest.mark.django_db(transaction=True)
 def test_intermediate_files_etl(
@@ -82,4 +82,4 @@ def test_intermediate_files_etl(
         assert Image.objects.filter(file=checksum_file).exists()
 
     for checksum_file in intermediate_output_meshes:
-        assert PointCloud.objects.filter(file=checksum_file).exists()
+        assert Mesh3D.objects.filter(file=checksum_file).exists()

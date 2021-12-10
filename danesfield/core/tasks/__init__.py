@@ -13,7 +13,7 @@ from celery.utils.log import get_task_logger
 from django.core.files.uploadedfile import SimpleUploadedFile
 import requests
 from rgd.models.common import ChecksumFile
-from rgd_3d.models import PointCloud
+from rgd_3d.models import Mesh3D
 from rgd_imagery.models.base import Image, ImageSet
 
 # Prevent circular import
@@ -27,7 +27,7 @@ RGD_3D_EXTENSIONS = ('.ply', '.obj')
 
 def _ingest_checksum_files(files: List[ChecksumFile]):
     images: List[Image] = []
-    meshes: List[PointCloud] = []
+    meshes: List[Mesh3D] = []
     for checksum_file in files:
         extension: str = Path(checksum_file.name).suffix
 
@@ -37,13 +37,13 @@ def _ingest_checksum_files(files: List[ChecksumFile]):
         if extension in RGD_IMAGERY_EXTENSIONS:
             images.append(Image(file=checksum_file))
         elif extension in RGD_3D_EXTENSIONS:
-            meshes.append(PointCloud(file=checksum_file))
+            meshes.append(Mesh3D(file=checksum_file))
 
     if images:
         ImageSet.objects.create().images.set(Image.objects.bulk_create(images))
 
     if meshes:
-        PointCloud.objects.bulk_create(meshes)
+        Mesh3D.objects.bulk_create(meshes)
 
 
 class ManagedTask(celery.Task):
