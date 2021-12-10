@@ -21,7 +21,7 @@ class DanesfieldMixin(GeoDjangoMixin, ConfigMixin):
     BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
     @staticmethod
-    def before_binding(configuration: ComposedConfiguration) -> None:
+    def mutate_configuration(configuration: ComposedConfiguration) -> None:
         # Install local apps first, to ensure any overridden resources are found first
         configuration.INSTALLED_APPS = [
             'danesfield.core.apps.CoreConfig',
