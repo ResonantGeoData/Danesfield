@@ -6,9 +6,14 @@ from pytest_factoryboy import register
 from rest_framework.test import APIClient
 from rgd.models.common import ChecksumFile
 
-from danesfield.core.models import DatasetRun
-
-from .factories import DATA_DIR, ChecksumFileFactory, DatasetFactory, DatasetRunFactory, UserFactory
+# from .factories import (
+#     DATA_DIR,
+#     ChecksumFileFactory,
+#     DatasetFactory,
+#     DatasetRunFactory,
+#     UserFactory
+# )
+from .factories import DATA_DIR, ChecksumFileFactory, UserFactory
 
 
 @pytest.fixture
@@ -43,31 +48,31 @@ def intermediate_output_meshes() -> List[ChecksumFile]:
     ]
 
 
-@pytest.fixture
-def successful_dataset_run(intermediate_output_images, intermediate_output_meshes):
-    dataset_output_files: List[ChecksumFileFactory] = (
-        intermediate_output_images
-        + intermediate_output_meshes
-        + [
-            ChecksumFileFactory(
-                name='tiler/tileset.json',
-                file=FileField(from_path=(DATA_DIR / 'tileset.json')),
-            ),
-        ]
-    )
-    run: DatasetRun = DatasetRunFactory(
-        status=DatasetRun.Status.SUCCEEDED, output_files=dataset_output_files
-    )
-    return run
+# @pytest.fixture
+# def successful_dataset_run(intermediate_output_images, intermediate_output_meshes):
+#     dataset_output_files: List[ChecksumFileFactory] = (
+#         intermediate_output_images
+#         + intermediate_output_meshes
+#         + [
+#             ChecksumFileFactory(
+#                 name='tiler/tileset.json',
+#                 file=FileField(from_path=(DATA_DIR / 'tileset.json')),
+#             ),
+#         ]
+#     )
+#     run: DatasetRun = DatasetRunFactory(
+#         status=DatasetRun.Status.SUCCEEDED, output_files=dataset_output_files
+#     )
+#     return run
 
 
-@pytest.fixture
-def failed_dataset_run():
-    run: DatasetRun = DatasetRunFactory(status=DatasetRun.Status.FAILED)
-    return run
+# @pytest.fixture
+# def failed_dataset_run():
+#     run: DatasetRun = DatasetRunFactory(status=DatasetRun.Status.FAILED)
+#     return run
 
 
 register(ChecksumFileFactory)
-register(DatasetFactory)
-register(DatasetRunFactory)
+# register(DatasetFactory)
+# register(DatasetRunFactory)
 register(UserFactory)

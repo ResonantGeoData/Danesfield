@@ -44,23 +44,25 @@ setup(
         'django-extensions',
         'django-filter',
         'django-oauth-toolkit',
-        'django-rgd[configuration]>=0.2.6dev6',
-        'django-rgd-3d>=0.2.7',
-        'django-rgd-imagery>=0.2.7',
+        'django-rgd[configuration]>=0.2.10',
+        'django-rgd-3d>=0.2.10',
+        'django-rgd-imagery>=0.2.10',
         'djangorestframework',
         'drf-extensions',
         'drf-yasg',
         # Production-only
-        'django-composed-configuration[prod]',
+        'django-composed-configuration[prod]>=0.19.2',
         'django-s3-file-field[boto3]',
         'gunicorn',
         # TEMP: Remove once fixed in upstream django-rgd
         'psutil',
+        # Install with git
+        'RD-OASIS @ git+https://github.com/ResonantGeoData/RD-OASIS@c8aaab9ade562b202281d485d96112b9583ff354',  # noqa
     ],
     dependency_links=['https://girder.github.io/large_image_wheels'],
     extras_require={
         'dev': [
-            'django-composed-configuration[dev]',
+            'django-composed-configuration[dev]>=0.19.2',
             'django-debug-toolbar',
             'django-s3-file-field[minio]',
             'ipython',

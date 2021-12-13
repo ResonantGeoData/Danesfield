@@ -3,9 +3,10 @@ from pathlib import Path
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 import djclick as click
+from rdoasis.algorithms.models import Algorithm, AlgorithmTask, Dataset
 from rgd.models.common import ChecksumFile
 
-from danesfield.core.models import Dataset, DatasetRun
+from danesfield.core.utils import danesfield_algorithm
 
 TEST_DATA_DIRECTORY = (
     Path(__file__).parent.parent.parent.parent.parent.resolve()
@@ -23,23 +24,39 @@ def populate_dev_data():
         dataset: Dataset = Dataset.objects.get(name='TilesetWithDiscreteLOD')
         click.echo(f'Dataset "TilesetWithDiscreteLOD" already exists (pk = {dataset.pk}).')
     else:
-        point_cloud_file = ChecksumFile.objects.create(
-            name='TilesetWithDiscreteLOD.las',
-            file=SimpleUploadedFile(name='TilesetWithDiscreteLOD.las', content=b'A' * 10),
+        dataset: Dataset = Dataset.objects.create(name='TilesetWithDiscreteLOD')
+        dataset.files.add(
+            ChecksumFile.objects.create(
+                name='TilesetWithDiscreteLOD.las',
+                file=SimpleUploadedFile(name='TilesetWithDiscreteLOD.las', content=b'A' * 10),
+            )
         )
-        dataset: Dataset = Dataset.objects.create(
-            name='TilesetWithDiscreteLOD',
-            imageless=True,
-            point_cloud_file=point_cloud_file,
+
+        click.echo(f'Created Dataset "TilesetWithDiscreteLOD" (pk = {dataset.pk})')
+
+    if Dataset.objects.filter(name='TilesetWithDiscreteLOD Output').exists():
+        output_dataset: Dataset = Dataset.objects.get(name='TilesetWithDiscreteLOD Output')
+        click.echo(
+            f'Dataset "TilesetWithDiscreteLOD Output" already exists (pk = {output_dataset.pk}).'
         )
-        click.echo(f'Created dataset "TilesetWithDiscreteLOD" (pk = {dataset.pk})')
-    dataset_run: DatasetRun = DatasetRun.objects.create(
-        dataset=dataset, status=DatasetRun.Status.SUCCEEDED, output_log='test'
+
+        return
+
+    alg: Algorithm = danesfield_algorithm()
+    output_dataset = Dataset.objects.create(name='TilesetWithDiscreteLOD Output')
+    alg_task: AlgorithmTask = AlgorithmTask.objects.create(
+        algorithm=alg,
+        status=AlgorithmTask.Status.SUCCEEDED,
+        input_dataset=dataset,
+        output_dataset=output_dataset,
+        output_log='test',
     )
-    click.echo(f'Created DatasetRun for Dataset {dataset.pk}.')
+    click.echo(f'Created AlgorithmTask (pk = {alg_task.pk}) for Algorithm {alg.pk}.')
+
+    # Populate output dataset
     for filename in test_filenames:
         with open(TEST_DATA_DIRECTORY / filename, 'rb') as fd:
-            dataset_run.output_files.add(
+            output_dataset.files.add(
                 ChecksumFile.objects.create(name=f'tiler/{filename}', file=File(fd))
             )
-            click.echo(f'  Added ChecksumFile "tiler/{filename}" to DatasetRun output.')
+            click.echo(f'  Added ChecksumFile "tiler/{filename}" to AlgorithmTask output dataset.')

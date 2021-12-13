@@ -3,9 +3,11 @@ from pathlib import Path
 from django.contrib.auth.models import User
 import factory.django
 import factory.fuzzy
-from rgd.models.common import ChecksumFile
 
-from danesfield.core.models.dataset import Dataset, DatasetRun
+# from danesfield.core.models.dataset import Dataset, DatasetRun
+from rdoasis.algorithms.models import Dataset
+from rdoasis.algorithms.tests.factories import DatasetFactory
+from rgd.models.common import ChecksumFile
 
 PARENT_DIR = Path(__file__).parent
 DATA_DIR = PARENT_DIR / 'data'
@@ -29,38 +31,14 @@ class ChecksumFileFactory(factory.django.DjangoModelFactory):
     name = factory.LazyAttribute(lambda obj: obj.file.name)
 
 
-class DatasetFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Dataset
-
-    name = factory.fuzzy.FuzzyText()
-    imageless = True
-
-    # Not used, just necessary for database constraints
-    point_cloud_file = factory.SubFactory(ChecksumFileFactory)
-
-
-class ImagefulDatasetFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Dataset
-
-    name = factory.fuzzy.FuzzyText()
-    imageless = False
-
-
-class DatasetRunFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = DatasetRun
-
-    dataset = factory.SubFactory(DatasetFactory)
-
-    # Simulate many-to-many relationship
-    # https://factoryboy.readthedocs.io/en/stable/recipes.html#simple-many-to-many-relationship
+class DanesfieldImagelessDatasetFactory(DatasetFactory):
     @factory.post_generation
-    def output_files(self, create, extracted, **kwargs):
-        if not create:
-            return
+    def files(self, create, extracted, **kwargs):
+        self.files.set([ChecksumFileFactory() for _ in range(5)])
 
-        if extracted:
-            for file in extracted:
-                self.output_files.add(file)
+
+class DanesfieldImagefulDatasetFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Dataset
+
+    name = factory.fuzzy.FuzzyText()
