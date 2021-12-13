@@ -10,7 +10,7 @@ import {
   Algorithm, ChecksumFile, Dataset, Task,
 } from '@/types';
 import UploadDialog from '@/components/UploadDialog.vue';
-import CreateDataset from '@/views/Home/components/CreateDataset.vue';
+import CreateDataset from '@/components/CreateDataset.vue';
 
 const fileTableHeaders = [
   {
