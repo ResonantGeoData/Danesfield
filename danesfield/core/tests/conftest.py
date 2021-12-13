@@ -6,7 +6,14 @@ from pytest_factoryboy import register
 from rest_framework.test import APIClient
 from rgd.models.common import ChecksumFile
 
-from .factories import DATA_DIR, ChecksumFileFactory, DatasetFactory, DatasetRunFactory, UserFactory
+# from .factories import (
+#     DATA_DIR,
+#     ChecksumFileFactory,
+#     DatasetFactory,
+#     DatasetRunFactory,
+#     UserFactory
+# )
+from .factories import DATA_DIR, ChecksumFileFactory, UserFactory
 
 
 @pytest.fixture
@@ -66,6 +73,6 @@ def intermediate_output_meshes() -> List[ChecksumFile]:
 
 
 register(ChecksumFileFactory)
-register(DatasetFactory)
-register(DatasetRunFactory)
+# register(DatasetFactory)
+# register(DatasetRunFactory)
 register(UserFactory)

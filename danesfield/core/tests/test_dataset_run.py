@@ -83,3 +83,7 @@
 
 #     for checksum_file in intermediate_output_meshes:
 #         assert Mesh3D.objects.filter(file=checksum_file).exists()
+
+
+def test_dummy():
+    pass
