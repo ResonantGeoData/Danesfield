@@ -17,7 +17,6 @@ class DanesfieldAlgorithmViewSet(ViewSet):
     @action(detail=False, methods=['GET'])
     def algorithm(self, request):
         """Return the singleton Danesfield algorithm."""
-
         alg = danesfield_algorithm()
         return Response(AlgorithmSerializer(alg).data)
 
