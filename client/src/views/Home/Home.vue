@@ -3,25 +3,20 @@ import {
   defineComponent, onMounted, ref, watch,
 } from '@vue/composition-api';
 import { axiosInstance } from '@/api';
-import {
-  DockerImage, Algorithm, Dataset,
-} from '@/types';
+import { Dataset, Task } from '@/types';
 
-import CreateAlgorithm from './components/CreateAlgorithm.vue';
 import CreateDataset from './components/CreateDataset.vue';
-import CreateDockerImage from './components/CreateDockerImage.vue';
 
 export default defineComponent({
   name: 'Home',
   components: {
-    CreateAlgorithm,
     CreateDataset,
-    CreateDockerImage,
   },
   setup(props, ctx) {
     const router = ctx.root.$router;
-    function viewAlgorithm(id: number) {
-      router.push({ name: 'algorithm', params: { id: id.toString() } });
+    function viewTask(id: number) {
+      // router.push({ name: 'danesfield', params: { id: id.toString() } });
+      router.push({ name: 'danesfield' });
     }
 
     const datasets = ref<Dataset[]>([]);
@@ -55,46 +50,24 @@ export default defineComponent({
       fetchDatasets();
     };
 
-    const dockerImages = ref<DockerImage[]>([]);
-    const dockerImageDialogOpen = ref(false);
-    const fetchingDockerImages = ref(false);
-    const fetchDockerImages = async () => {
-      fetchingDockerImages.value = true;
-
+    const tasks = ref<Task[]>([]);
+    const fetchingTasks = ref(false);
+    const fetchTasks = async () => {
+      fetchingTasks.value = true;
       try {
-        const res = await axiosInstance.get('docker_images/');
-        dockerImages.value = res.data.results;
-      } catch (error) {
-        // TODO: Handle
-      }
-
-      fetchingDockerImages.value = false;
-    };
-
-    const dockerImageCreated = () => {
-      dockerImageDialogOpen.value = false;
-      fetchDockerImages();
-    };
-
-    const algorithms = ref<Algorithm[]>([]);
-    const fetchingAlgorithms = ref(false);
-    const algorithmDialogOpen = ref(false);
-    const fetchAlgortihms = async () => {
-      fetchingAlgorithms.value = true;
-      try {
-        const res = await axiosInstance.get('algorithms/');
-        algorithms.value = res.data.results;
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        const res = await axiosInstance.get('tasks/', { params: { algorithm__pk: 1 } });
+        tasks.value = res.data.results;
       } catch (error) {
         // TOOD: Handle
       }
 
-      fetchingAlgorithms.value = false;
+      fetchingTasks.value = false;
     };
 
     onMounted(() => {
       fetchDatasets();
-      fetchDockerImages();
-      fetchAlgortihms();
+      fetchTasks();
     });
 
     return {
@@ -104,15 +77,9 @@ export default defineComponent({
       showOutputDatasets,
       fetchingDatasets,
 
-      dockerImages,
-      dockerImageDialogOpen,
-      dockerImageCreated,
-      fetchingDockerImages,
-
-      algorithms,
-      fetchingAlgorithms,
-      algorithmDialogOpen,
-      viewAlgorithm,
+      tasks,
+      fetchingTasks,
+      viewTask,
     };
   },
 });
@@ -124,57 +91,7 @@ export default defineComponent({
     style="align-items: start"
   >
     <v-row style="height: 100%; max-height: 100%">
-      <v-col cols="4">
-        <v-card
-          flat
-          outlined
-          style="height: 100%"
-        >
-          <v-progress-linear
-            v-show="fetchingDockerImages"
-            indeterminate
-          />
-          <v-card-title>
-            Docker Images
-            <v-dialog
-              v-model="dockerImageDialogOpen"
-              width="50vw"
-            >
-              <template v-slot:activator="{ on }">
-                <v-btn
-                  icon
-                  right
-                  small
-                  v-on="on"
-                >
-                  <v-icon color="success">
-                    mdi-plus-circle
-                  </v-icon>
-                </v-btn>
-              </template>
-              <create-docker-image @created="dockerImageCreated" />
-            </v-dialog>
-          </v-card-title>
-          <v-list>
-            <v-list-item
-              v-for="image in dockerImages"
-              :key="image.id"
-              class="my-2"
-            >
-              <v-card width="100%">
-                <v-card-title>{{ image.name }}</v-card-title>
-                <v-card-text>
-                  Image ID: {{ image.image_id }}<br>
-                  Image file: {{ image.image_file || 'null' }}<br>
-                  <!-- Uses GPU: {{ alg.gpu }}<br> -->
-                </v-card-text>
-              </v-card>
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-col>
-
-      <v-col cols="4">
+      <v-col cols="6">
         <v-card
           flat
           outlined
@@ -232,52 +149,31 @@ export default defineComponent({
         </v-card>
       </v-col>
 
-      <v-col cols="4">
+      <v-col cols="6">
         <v-card
           flat
           outlined
           style="height: 100%"
         >
           <v-progress-linear
-            v-show="fetchingAlgorithms"
+            v-show="fetchingTasks"
             indeterminate
           />
-          <v-card-title>
-            Algorithms
-            <v-dialog
-              v-model="algorithmDialogOpen"
-              width="50vw"
-            >
-              <template v-slot:activator="{ on }">
-                <v-btn
-                  icon
-                  right
-                  small
-                  v-on="on"
-                >
-                  <v-icon color="success">
-                    mdi-plus-circle
-                  </v-icon>
-                </v-btn>
-              </template>
-              <create-algorithm />
-            </v-dialog>
-          </v-card-title>
+          <v-card-title>Tasks</v-card-title>
           <v-list dense>
             <v-list-item
-              v-for="alg in algorithms"
-              :key="alg.id"
+              v-for="task in tasks"
+              :key="task.id"
               class="my-2"
               dense
             >
               <v-card
                 width="100%"
-                @click="viewAlgorithm(alg.id)"
+                @click="viewTask(task.id)"
               >
-                <v-card-title>{{ alg.name }}</v-card-title>
+                <v-card-title>{{ task.id }}</v-card-title>
                 <v-card-text>
-                  Command: "{{ alg.command }}"<br>
-                  Uses GPU: {{ alg.gpu }}<br>
+                  Status: "{{ task.status }}"<br>
 
                   <!-- TODO: Num files -->
                   <!-- TODO: Num tasks -->

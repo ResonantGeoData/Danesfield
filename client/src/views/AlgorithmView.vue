@@ -10,6 +10,7 @@ import {
   Algorithm, ChecksumFile, Dataset, Task,
 } from '@/types';
 import UploadDialog from '@/components/UploadDialog.vue';
+import CreateDataset from '@/views/Home/components/CreateDataset.vue';
 
 const fileTableHeaders = [
   {
@@ -51,6 +52,7 @@ export default defineComponent({
   components: {
     VJsoneditor,
     UploadDialog,
+    CreateDataset,
   },
   setup() {
     // /////////////////
@@ -279,33 +281,22 @@ export default defineComponent({
     style="align-items: start"
   >
     <v-row no-gutters>
-      <v-col class="pa-0">
-        <v-toolbar extension-height="400">
-          <v-progress-circular
-            v-if="!algorithm"
-            indeterminate
-          />
-          <template v-else>
-            <v-btn
-              icon
-              left
-              @click="showAlgorithmDetails = !showAlgorithmDetails"
-            >
-              <v-icon v-if="showAlgorithmDetails">
-                mdi-chevron-down
-              </v-icon>
-              <v-icon v-else>
-                mdi-chevron-right
+      <v-col>
+        <v-dialog>
+          <template v-slot:activator="{ on }">
+            <v-btn v-on="on">
+              New Dataset
+
+              <v-icon right>
+                mdi-plus
               </v-icon>
             </v-btn>
-            <v-toolbar-title>
-              {{ algorithm.name }} ({{ algorithm.id }})
-            </v-toolbar-title>
           </template>
-        </v-toolbar>
+          <create-dataset />
+        </v-dialog>
       </v-col>
     </v-row>
-    <v-row style="height: 100%">
+    <v-row fill-height>
       <v-col
         cols="auto"
         class="pa-0"
