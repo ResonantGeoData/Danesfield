@@ -1,10 +1,12 @@
 <script lang="ts">
-import { computed, defineComponent } from '@vue/composition-api';
-import { oauthClient } from '@/api';
+import {
+  computed, defineComponent, reactive, ref,
+} from '@vue/composition-api';
+import { axiosInstance, oauthClient } from '@/api';
 
 export default defineComponent({
   setup(props, ctx) {
-    const router = ctx.root.$router;
+    const router = reactive(ctx.root.$router);
     function navigateHome() {
       if (router.currentRoute.path !== '/') {
         router.push('/');
@@ -20,10 +22,27 @@ export default defineComponent({
       }
     };
 
+    // Link for girder tab
+    const apiLink = `${axiosInstance.defaults.baseURL}docs/swagger`;
+    const tab = computed(() => router.currentRoute.path);
+
+    // onTabChange is only called when the api link is clicked.
+    // Once clicked, set value back to what it should be.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tabsRef = ref<any>(null);
+    function onTabChange() {
+      const itemsComponent = tabsRef.value.$refs.items;
+      itemsComponent.internalValue = tab.value;
+    }
+
     return {
       loginText,
       logInOrOut,
       navigateHome,
+      tab,
+      tabsRef,
+      apiLink,
+      onTabChange,
     };
   },
 });
@@ -36,15 +55,45 @@ export default defineComponent({
       <v-row
         align="center"
         style="cursor: pointer;"
+        no-gutters
         @click="navigateHome"
       >
-        <v-avatar tile>
-          <img src="../public/icon_large.png">
-        </v-avatar>
-        <span class="ml-2 text-h4 font-weight-regular">
-          OASIS
-        </span>
+        <v-app-bar-title>
+          <v-avatar tile>
+            <img src="../public/icon_large.png">
+          </v-avatar>
+          Danesfield
+        </v-app-bar-title>
       </v-row>
+
+      <v-tabs
+        ref="tabsRef"
+        :value="tab"
+        icons-and-text
+        class="mx-3"
+        @change="onTabChange"
+      >
+        <v-tab to="/">
+          Explore
+          <v-icon>mdi-compass</v-icon>
+        </v-tab>
+        <v-tab to="/focus">
+          Focus
+          <v-icon>mdi-image-filter-center-focus-strong</v-icon>
+        </v-tab>
+        <v-tab to="/tasks">
+          Tasks
+          <v-icon>mdi-list-status</v-icon>
+        </v-tab>
+        <v-tab
+          :href="apiLink"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Girder
+          <v-icon>mdi-open-in-new</v-icon>
+        </v-tab>
+      </v-tabs>
       <v-spacer />
       <v-btn
         text
