@@ -7,11 +7,6 @@ import { axiosInstance, oauthClient } from '@/api';
 export default defineComponent({
   setup(props, ctx) {
     const router = reactive(ctx.root.$router);
-    function navigateHome() {
-      if (router.currentRoute.path !== '/') {
-        router.push('/');
-      }
-    }
 
     const loginText = computed(() => (oauthClient.isLoggedIn ? 'Logout' : 'Login'));
     const logInOrOut = () => {
@@ -38,7 +33,6 @@ export default defineComponent({
     return {
       loginText,
       logInOrOut,
-      navigateHome,
       tab,
       tabsRef,
       apiLink,
@@ -54,9 +48,7 @@ export default defineComponent({
     <v-app-bar class="flex-grow-0">
       <v-row
         align="center"
-        style="cursor: pointer;"
         no-gutters
-        @click="navigateHome"
       >
         <v-app-bar-title>
           <v-avatar tile>
