@@ -31,7 +31,9 @@
             mdi-file
           </template>
         </v-icon>
-        {{ item.path }}
+        <span class="text-truncate">
+          {{ item.path }}
+        </span>
         <v-spacer />
 
         <v-list-item-action v-if="!item.isFolder">
