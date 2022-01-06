@@ -3,10 +3,10 @@
     style="height: 100%"
     no-gutters
   >
-    <v-col cols="2">
+    <v-col cols="3">
       <file-browser />
     </v-col>
-    <v-col cols="10">
+    <v-col cols="9">
       <!-- TODO: put iframe to RGD server-rendered pages here -->
     </v-col>
   </v-row>
