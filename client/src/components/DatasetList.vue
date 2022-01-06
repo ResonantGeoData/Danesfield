@@ -6,6 +6,8 @@
     <v-card
       v-for="dataset in datasets"
       :key="dataset.id"
+      class="my-2"
+      outlined
     >
       <v-list-item @click="viewDataset(dataset.id)">
         <v-list-item-content>
