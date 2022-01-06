@@ -3,6 +3,14 @@
     height="100%"
     outlined
   >
+    <v-btn
+      icon
+      :to="{ name: 'explore' }"
+    >
+      <v-icon>
+        mdi-arrow-left
+      </v-icon>
+    </v-btn>
     <v-card-title>
       <template v-for="part in splitLocation">
         /{{ part }}
