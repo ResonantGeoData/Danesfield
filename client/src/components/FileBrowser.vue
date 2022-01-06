@@ -5,7 +5,7 @@
   >
     <v-btn
       icon
-      :to="{ name: 'explore' }"
+      @click="exitDataset"
     >
       <v-icon>
         mdi-arrow-left
@@ -133,6 +133,10 @@ export default defineComponent({
       }
     }
 
+    function exitDataset() {
+      ctx.root.$router.replace({ name: 'explore', params: undefined, query: undefined });
+    }
+
     return {
       items,
       splitLocation,
@@ -140,6 +144,7 @@ export default defineComponent({
       rootDirectory,
       locationSlice,
       selectPath,
+      exitDataset,
     };
   },
 });
