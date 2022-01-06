@@ -4,25 +4,8 @@
     outlined
   >
     <v-card-title>
-      <router-link
-        :to="{ name: 'focus', query: { location: rootDirectory } }"
-        style="text-decoration: none;"
-        class="mx-2"
-      >
-        {{ '.' }}
-      </router-link>
-      <template v-for="(part, i) in splitLocation">
-        /
-        <template v-if="part">
-          <router-link
-            :key="part"
-            :to="{ name: 'focus', query: { location: locationSlice(i) } }"
-            style="text-decoration: none;"
-            class="mx-2"
-          >
-            {{ part }}
-          </router-link>
-        </template>
+      <template v-for="part in splitLocation">
+        /{{ part }}
       </template>
     </v-card-title>
     <v-progress-linear
