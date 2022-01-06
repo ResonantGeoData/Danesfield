@@ -69,10 +69,6 @@ export default defineComponent({
           Explore
           <v-icon>mdi-compass</v-icon>
         </v-tab>
-        <v-tab to="/focus">
-          Focus
-          <v-icon>mdi-image-filter-center-focus-strong</v-icon>
-        </v-tab>
         <v-tab to="/tasks">
           Tasks
           <v-icon>mdi-list-status</v-icon>

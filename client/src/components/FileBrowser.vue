@@ -3,6 +3,14 @@
     height="100%"
     outlined
   >
+    <v-btn
+      icon
+      @click="exitDataset"
+    >
+      <v-icon>
+        mdi-arrow-left
+      </v-icon>
+    </v-btn>
     <v-card-title>
       <template v-for="part in splitLocation">
         /{{ part }}
@@ -125,6 +133,10 @@ export default defineComponent({
       }
     }
 
+    function exitDataset() {
+      ctx.root.$router.replace({ name: 'explore', params: undefined, query: undefined });
+    }
+
     return {
       items,
       splitLocation,
@@ -132,6 +144,7 @@ export default defineComponent({
       rootDirectory,
       locationSlice,
       selectPath,
+      exitDataset,
     };
   },
 });

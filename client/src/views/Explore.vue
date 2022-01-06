@@ -1,15 +1,35 @@
 <template>
-  <div>
-    TODO: Explore Tab
-  </div>
+  <v-row
+    style="height: 100%"
+    no-gutters
+  >
+    <v-col cols="3">
+      <file-browser v-if="datasetId" />
+      <dataset-list v-else />
+    </v-col>
+    <v-col cols="9">
+      <!-- TODO: put iframe to RGD server-rendered pages here -->
+    </v-col>
+  </v-row>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent } from '@vue/composition-api';
+import DatasetList from '@/components/DatasetList.vue';
+import FileBrowser from '@/components/FileBrowser.vue';
 
 export default defineComponent({
+  name: 'Explore',
+  components: { DatasetList, FileBrowser },
+  props: {
+    datasetId: {
+      type: Number,
+      required: false,
+    },
+  },
   setup() {
-    // TODO
+    return {
+    };
   },
 });
 </script>
