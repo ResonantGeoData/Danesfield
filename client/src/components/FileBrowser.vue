@@ -69,6 +69,12 @@ interface FileItem extends ChecksumFile {
 
 export default defineComponent({
   name: 'FileBrowser',
+  props: {
+    datasetId: {
+      type: Number,
+      required: true,
+    },
+  },
   setup(props, ctx) {
     const location = ref(rootDirectory);
     const items: Ref<FileItem[]> = ref([]);
@@ -80,7 +86,7 @@ export default defineComponent({
       updating.value = true;
 
       // eslint-disable-next-line @typescript-eslint/camelcase
-      const { data } = await axiosInstance.get('/rgd/checksum_file/tree', { params: { path_prefix: location.value } });
+      const { data } = await axiosInstance.get(`/datasets/${props.datasetId}/tree`, { params: { path_prefix: location.value } });
 
       items.value = [
         ...location.value !== rootDirectory ? [{ path: parentDirectory, isFolder: true }] : [],
