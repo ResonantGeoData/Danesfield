@@ -20,12 +20,12 @@ export default defineComponent({
   name: 'Focus',
   components: { FileBrowser },
   props: {
-    datasetId: {
-      type: String,
-      required: true,
-    },
+    // datasetId: {
+    //   type: String,
+    //   required: true,
+    // },
   },
-  setup(props) {
+  setup() {
     return {
     };
   },
