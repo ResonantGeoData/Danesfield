@@ -13,11 +13,13 @@ const routes: Array<RouteConfig> = [
     props: true,
   },
   {
+    name: 'tasks',
     path: '/tasks',
     component: AlgorithmView,
     props: true,
   },
   {
+    name: 'focus',
     path: '/focus',
     component: Focus,
     props: true,
