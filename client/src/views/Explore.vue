@@ -4,7 +4,10 @@
     no-gutters
   >
     <v-col cols="3">
-      <file-browser v-if="datasetId" />
+      <file-browser
+        v-if="datasetId"
+        :dataset-id="datasetId"
+      />
       <dataset-list v-else />
     </v-col>
     <v-col cols="9">
