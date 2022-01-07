@@ -10,8 +10,8 @@ import zipfile
 import celery
 from celery.utils.log import get_task_logger
 from rdoasis.algorithms.models import AlgorithmTask
-from rdoasis.algorithms.tasks.algorithms import _run_algorithm_task
 from rdoasis.algorithms.tasks.common import ManagedTask
+from rdoasis.algorithms.tasks.docker import _run_algorithm_task_docker
 import requests
 from rgd.models.common import ChecksumFile
 from rgd_3d.models import Mesh3D
@@ -116,7 +116,7 @@ class DanesfieldTask(ManagedTask):
 
 @celery.shared_task(base=DanesfieldTask, bind=True)
 def run_danesfield_task(self: DanesfieldTask, *args, **kwargs):
-    _run_algorithm_task(self, *args, **kwargs)
+    _run_algorithm_task_docker(self, *args, **kwargs)
 
 
 def run_danesfield(input_dataset_pk: Union[str, int]) -> AlgorithmTask:
