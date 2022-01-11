@@ -44,9 +44,9 @@ setup(
         'django-extensions',
         'django-filter',
         'django-oauth-toolkit',
-        'django-rgd[configuration]>=0.2.10',
-        'django-rgd-3d>=0.2.10',
-        'django-rgd-imagery>=0.2.10',
+        'django-rgd @ git+https://github.com/ResonantGeoData/ResonantGeoData@3d-tiles-support#subdirectory=django-rgd',  # noqa
+        'django-rgd-3d @ git+https://github.com/ResonantGeoData/ResonantGeoData@3d-tiles-support#subdirectory=django-rgd-3d',  # noqa
+        'django-rgd-imagery @ git+https://github.com/ResonantGeoData/ResonantGeoData@3d-tiles-support#subdirectory=django-rgd-imagery',  # noqa
         'djangorestframework',
         'drf-extensions',
         'drf-yasg',
