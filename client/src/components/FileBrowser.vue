@@ -44,13 +44,27 @@
         </span>
         <v-spacer />
 
-        <v-list-item-action v-if="!item.isFolder">
+        <v-list-item-action
+          v-if="!item.isFolder"
+          class="d-inline-block"
+        >
           <v-btn
             icon
             :href="item.file"
           >
             <v-icon color="primary">
               mdi-download
+            </v-icon>
+          </v-btn>
+          <v-btn
+            icon
+            @click="setFile(item)"
+          >
+            <v-icon
+              v-if="openFile === item.name"
+              color="success"
+            >
+              mdi-eye
             </v-icon>
           </v-btn>
         </v-list-item-action>
@@ -64,6 +78,7 @@ import {
   computed, defineComponent, Ref, ref, watch,
 } from '@vue/composition-api';
 import { axiosInstance } from '@/api';
+import { openFile, setOpenFile } from '@/store';
 import { RawLocation } from 'vue-router';
 import { ChecksumFile } from '@/types';
 
@@ -130,8 +145,9 @@ export default defineComponent({
     function selectPath(item: FileItem) {
       const { path, isFolder } = item;
 
-      if (!isFolder) { return; }
-      if (path === parentDirectory) {
+      if (!isFolder) {
+        setOpenFile(item.name);
+      } else if (path === parentDirectory) {
         const slicedLocation = location.value.split('/').slice(0, -2);
         location.value = slicedLocation.length ? `${slicedLocation.join('/')}/` : '';
       } else {
@@ -151,6 +167,8 @@ export default defineComponent({
       locationSlice,
       selectPath,
       exitDataset,
+      openFile,
+      setOpenFile,
     };
   },
 });
