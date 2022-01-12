@@ -11,6 +11,8 @@ from rest_framework.viewsets import ViewSet
 from danesfield.core.tasks import run_danesfield
 from danesfield.core.utils import danesfield_algorithm
 
+from .dataset import DatasetViewSet
+
 
 class DanesfieldAlgorithmViewSet(ViewSet):
     @swagger_auto_schema(method='GET')
@@ -29,3 +31,6 @@ class DanesfieldAlgorithmViewSet(ViewSet):
 
         task = run_danesfield(serializer.validated_data['input_dataset'])
         return Response(AlgorithmTaskSerializer(task).data)
+
+
+__all__ = ['DanesfieldAlgorithmViewSet', 'DatasetViewSet']
