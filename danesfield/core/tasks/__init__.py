@@ -15,7 +15,7 @@ from rdoasis.algorithms.tasks.docker import _run_algorithm_task_docker
 import requests
 from rgd.models.common import ChecksumFile
 from rgd_3d.models import Mesh3D
-from rgd_imagery.models.base import Image, ImageSet
+from rgd_imagery.models import Image, ImageSet, Raster
 
 from danesfield.core.utils import danesfield_algorithm
 
@@ -40,7 +40,11 @@ def _ingest_checksum_files(files: List[ChecksumFile]):
             meshes.append(Mesh3D(file=checksum_file))
 
     if images:
-        ImageSet.objects.create().images.set(Image.objects.bulk_create(images))
+        images = Image.objects.bulk_create(images)
+        for image in images:
+            image_set = ImageSet.objects.create(name=image.file.name)
+            image_set.images.set([image])
+            Raster.objects.create(name=image.file.name, image_set=image_set)
 
     if meshes:
         Mesh3D.objects.bulk_create(meshes)
