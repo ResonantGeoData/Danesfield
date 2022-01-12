@@ -10,14 +10,27 @@
       />
       <dataset-list v-else />
     </v-col>
-    <v-col cols="9">
-      <!-- TODO: put iframe to RGD server-rendered pages here -->
+    <v-col
+      cols="9"
+      class="d-flex justify-center align-center"
+    >
+      <iframe
+        v-if="iframeSrc"
+        :src="iframeSrc"
+        height="100%"
+        width="100%"
+      />
+      <template v-else>
+        Select a file to view.
+      </template>
     </v-col>
   </v-row>
 </template>
 
 <script lang="ts">
-import { defineComponent } from '@vue/composition-api';
+import { computed, defineComponent, watch } from '@vue/composition-api';
+import { axiosInstance } from '@/api';
+import { openFile, setOpenFile } from '@/store';
 import DatasetList from '@/components/DatasetList.vue';
 import FileBrowser from '@/components/FileBrowser.vue';
 
@@ -30,8 +43,14 @@ export default defineComponent({
       required: false,
     },
   },
-  setup() {
+  setup(props) {
+    const iframeSrc = computed(() => (openFile.value ? `${axiosInstance.defaults.baseURL}datasets/${props.datasetId}/viewer/${openFile.value}` : undefined));
+
+    // Unset open file if the user navigates to a different URL
+    watch(() => props.datasetId, () => setOpenFile(''));
+
     return {
+      iframeSrc,
     };
   },
 });
