@@ -9,8 +9,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.request import Request
 from rgd.models import ChecksumFile
 from rgd_3d.models import Mesh3D
-from rgd_imagery.models import Image, Raster
-from rgd_imagery.models.raster import RasterMeta
+from rgd_imagery.models import Image, RasterMeta
 
 
 class DatasetViewSet(BaseDatasetViewSet):
@@ -25,7 +24,7 @@ class DatasetViewSet(BaseDatasetViewSet):
 
                 # Display the associated Raster if this is an Image
                 if model == Image:
-                    ingested_file: Raster = ingested_file.imageset_set.first().raster
+                    ingested_file: RasterMeta = ingested_file.imageset_set.first().raster.rastermeta
                     model = RasterMeta
 
                 return HttpResponseRedirect(
