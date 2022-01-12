@@ -1,5 +1,3 @@
-from typing import Union
-
 from django.http.response import HttpResponseNotFound, HttpResponseRedirect
 from django.urls import reverse
 from rdoasis.algorithms.models import Dataset
