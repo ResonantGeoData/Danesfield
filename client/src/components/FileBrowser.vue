@@ -58,7 +58,7 @@
           </v-btn>
           <v-btn
             icon
-            @click="setFile(item)"
+            @click="setOpenFile(item)"
           >
             <v-icon
               v-if="openFile === item.name"
