@@ -3,11 +3,11 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
-from rdoasis.algorithms.views.algorithms import AlgorithmTaskViewSet, DatasetViewSet
+from rdoasis.algorithms.views.algorithms import AlgorithmTaskViewSet
 from rest_framework import permissions
 from rest_framework_extensions.routers import ExtendedSimpleRouter
 
-from danesfield.core.views import DanesfieldAlgorithmViewSet
+from danesfield.core.views import DanesfieldAlgorithmViewSet, DatasetViewSet
 
 # OpenAPI generation
 schema_view = get_schema_view(
