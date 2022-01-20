@@ -9,12 +9,12 @@ import zipfile
 
 import celery
 from celery.utils.log import get_task_logger
-from rdoasis.algorithms.models import AlgorithmTask
+from rdoasis.algorithms.models import AlgorithmTask, Dataset
 from rdoasis.algorithms.tasks.common import ManagedTask
 from rdoasis.algorithms.tasks.docker import _run_algorithm_task_docker
 import requests
-from rgd.models.common import ChecksumFile
-from rgd_3d.models import Mesh3D
+from rgd.models import FileSet
+from rgd_3d.models import Mesh3D, Tiles3D
 from rgd_imagery.models import Image, ImageSet, Raster
 
 from danesfield.core.utils import danesfield_algorithm
@@ -25,10 +25,10 @@ RGD_IMAGERY_EXTENSIONS = ('.tif', '.png')
 RGD_3D_EXTENSIONS = ('.ply', '.obj')
 
 
-def _ingest_checksum_files(files: List[ChecksumFile]):
+def _ingest_checksum_files(dataset: Dataset):
     images: List[Image] = []
     meshes: List[Mesh3D] = []
-    for checksum_file in files:
+    for checksum_file in dataset.files.all():
         extension: str = Path(checksum_file.name).suffix
 
         if not extension:
@@ -38,6 +38,20 @@ def _ingest_checksum_files(files: List[ChecksumFile]):
             images.append(Image(file=checksum_file))
         elif extension in RGD_3D_EXTENSIONS:
             meshes.append(Mesh3D(file=checksum_file))
+
+        # 3D tiles is a special case - save all associated files into the
+        # database all at once
+        elif checksum_file.name.endswith('tileset.json'):
+            # Create a fileset for this 3D tiles dataset
+            tiles_3d_fileset = FileSet.objects.create(name=dataset.name)
+
+            # Get the base directory of the 3D tiles dataset
+            tiles_3d_base_dir = Path(checksum_file.name).parent
+
+            tiles_3d_fileset.checksumfile_set.set(
+                dataset.files.filter(name__startswith=tiles_3d_base_dir)
+            )
+            Tiles3D.objects.create(name=dataset.name, json_file=checksum_file)
 
     if images:
         images = Image.objects.bulk_create(images)
@@ -109,7 +123,7 @@ class DanesfieldTask(ManagedTask):
 
     def _upload_result_files(self):
         super()._upload_result_files()
-        _ingest_checksum_files(list(self.algorithm_task.output_dataset.files.all()))
+        _ingest_checksum_files(self.algorithm_task.output_dataset)
 
     def _setup(self, **kwargs):
         super()._setup(**kwargs)
