@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 from pathlib import Path
 
 from composed_configuration import (
@@ -38,6 +39,10 @@ class DanesfieldMixin(GeoDjangoMixin, ConfigMixin):
             engine='django.contrib.gis.db.backends.postgis',
             conn_max_age=600,
         )
+
+    CELERY_TASK_TIME_LIMIT = values.IntegerValue(
+        environ=True, default=timedelta(days=1).total_seconds()
+    )
 
 
 class DevelopmentConfiguration(DanesfieldMixin, DevelopmentBaseConfiguration):
