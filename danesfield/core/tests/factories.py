@@ -3,8 +3,6 @@ from pathlib import Path
 from django.contrib.auth.models import User
 import factory.django
 import factory.fuzzy
-
-# from danesfield.core.models.dataset import Dataset, DatasetRun
 from rdoasis.algorithms.models import Dataset
 from rdoasis.algorithms.tests.factories import DatasetFactory
 from rgd.models.common import ChecksumFile
