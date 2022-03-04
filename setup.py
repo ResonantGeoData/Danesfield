@@ -67,6 +67,7 @@ setup(
             'django-debug-toolbar',
             'django-s3-file-field[minio]',
             'ipython',
+            'rasterio',
             'tox',
         ],
         'worker': [
