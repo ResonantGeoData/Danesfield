@@ -3,16 +3,12 @@ from typing import List
 from factory.django import FileField
 import pytest
 from pytest_factoryboy import register
+from rdoasis.algorithms.tests.factories import DatasetFactory
 from rest_framework.test import APIClient
-from rgd.models.common import ChecksumFile
+from rgd.models import ChecksumFile, FileSet
+from rgd_3d.models import Mesh3D, Tiles3D
+from rgd_imagery.models import Image, ImageSet, Raster
 
-# from .factories import (
-#     DATA_DIR,
-#     ChecksumFileFactory,
-#     DatasetFactory,
-#     DatasetRunFactory,
-#     UserFactory
-# )
 from .factories import DATA_DIR, ChecksumFileFactory, UserFactory
 
 
@@ -29,50 +25,63 @@ def authenticated_api_client(user) -> APIClient:
 
 
 @pytest.fixture
-def intermediate_output_images() -> List[ChecksumFile]:
-    """Sample intermediate images the Danesfield algorithm outputs during 3D tiles generation."""
+def admin_api_client(user_factory) -> APIClient:
+    client = APIClient()
+    user = user_factory(is_superuser=True)
+    client.force_authenticate(user=user)
+    return client
+
+
+@pytest.fixture
+def sample_output_image():
+    """Sample output image from the Danesfield algorithm."""
+    file_path = DATA_DIR / 'images' / 'threshold_CLS.tif'
+    return ChecksumFileFactory(name=file_path, file=FileField(from_path=(file_path)))
+
+
+@pytest.fixture(params=['44_building_49.obj', 'building_49.ply'])
+def sample_output_mesh(request):
+    """Sample output mesh from the Danesfield algorithm."""
+    file = str(DATA_DIR / 'meshes' / request.param)
+    return ChecksumFileFactory(name=file, file=FileField(from_path=(file)))
+
+
+@pytest.fixture
+def sample_output_3d_tiles() -> List[ChecksumFile]:
+    """Sample 3D tiles output from the Danesfield algorithm."""
     return [
         ChecksumFileFactory(name=file_path, file=FileField(from_path=(file_path)))
-        for file_path in (DATA_DIR / 'intermediate' / 'images').iterdir()
+        for file_path in (DATA_DIR / '3d_tiles').iterdir()
         if not file_path.is_dir()
     ]
 
 
 @pytest.fixture
-def intermediate_output_meshes() -> List[ChecksumFile]:
-    """Sample intermediate meshes the Danesfield algorithm outputs during 3D tiles generation."""
-    return [
-        ChecksumFileFactory(name=file_path, file=FileField(from_path=(file_path)))
-        for file_path in (DATA_DIR / 'intermediate' / 'meshes').iterdir()
-        if not file_path.is_dir()
-    ]
+def raster(sample_output_image):
+    image = Image.objects.create(file=sample_output_image)
+    image_set = ImageSet.objects.create(name=image.file.name)
+    image_set.images.set([image])
+    raster: Raster = Raster.objects.create(name=image.file.name, image_set=image_set)
+    raster._run_tasks()
+    return raster
 
 
-# @pytest.fixture
-# def successful_dataset_run(intermediate_output_images, intermediate_output_meshes):
-#     dataset_output_files: List[ChecksumFileFactory] = (
-#         intermediate_output_images
-#         + intermediate_output_meshes
-#         + [
-#             ChecksumFileFactory(
-#                 name='tiler/tileset.json',
-#                 file=FileField(from_path=(DATA_DIR / 'tileset.json')),
-#             ),
-#         ]
-#     )
-#     run: DatasetRun = DatasetRunFactory(
-#         status=DatasetRun.Status.SUCCEEDED, output_files=dataset_output_files
-#     )
-#     return run
+@pytest.fixture
+def mesh(sample_output_mesh):
+    return Mesh3D.objects.create(file=sample_output_mesh)
 
 
-# @pytest.fixture
-# def failed_dataset_run():
-#     run: DatasetRun = DatasetRunFactory(status=DatasetRun.Status.FAILED)
-#     return run
+@pytest.fixture
+def tiles3d(sample_output_3d_tiles):
+    tiles_3d_fileset = FileSet.objects.create()
+    for file in sample_output_3d_tiles:
+        file.file_set = tiles_3d_fileset
+        file.save(update_fields=['file_set'])
+    return Tiles3D.objects.create(
+        json_file=tiles_3d_fileset.files.get(name__endswith='tileset.json')
+    )
 
 
 register(ChecksumFileFactory)
-# register(DatasetFactory)
-# register(DatasetRunFactory)
+register(DatasetFactory)
 register(UserFactory)
