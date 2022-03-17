@@ -3,6 +3,9 @@
     outlined
     height="100%"
   >
+    <span class="text-h6 justify-center d-flex">
+      Datasets
+    </span>
     <v-card
       v-for="dataset in datasets"
       :key="dataset.id"
@@ -21,9 +24,7 @@
 <script lang="ts">
 import { defineComponent, ref } from '@vue/composition-api';
 import { axiosInstance } from '@/api';
-import router from '@/router';
 import { AxiosResponse } from 'axios';
-import { RawLocation } from 'vue-router';
 
 export default defineComponent({
   setup() {
@@ -35,15 +36,7 @@ export default defineComponent({
       });
 
     function viewDataset(datasetId: string) {
-      const route = {
-        name: 'explore',
-        params: { datasetId },
-        query: {
-          location: '',
-        },
-      } as RawLocation;
-
-      router.push(route);
+      // TODO: implement focus view for dataset
     }
 
     return {

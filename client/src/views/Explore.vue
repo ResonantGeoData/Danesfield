@@ -4,53 +4,39 @@
     no-gutters
   >
     <v-col cols="3">
-      <file-browser
-        v-if="datasetId"
-        :dataset-id="datasetId"
-      />
-      <dataset-list v-else />
+      <dataset-list />
     </v-col>
     <v-col
       cols="9"
       class="d-flex justify-center align-center"
     >
-      <iframe
-        v-if="iframeSrc"
-        :src="iframeSrc"
-        height="100%"
-        width="100%"
-      />
-      <template v-else>
-        Select a file to view.
-      </template>
+      <CesiumViewer :footprints="footprints" />
     </v-col>
   </v-row>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, watch } from '@vue/composition-api';
+import { defineComponent, onMounted, ref } from '@vue/composition-api';
 import { axiosInstance } from '@/api';
-import { openFile, setOpenFile } from '@/store';
 import DatasetList from '@/components/DatasetList.vue';
-import FileBrowser from '@/components/FileBrowser.vue';
+import CesiumViewer from '@/components/CesiumViewer.vue';
+import DatasetPanel from '@/components/DatasetPanel.vue';
 
 export default defineComponent({
   name: 'Explore',
-  components: { DatasetList, FileBrowser },
-  props: {
-    datasetId: {
-      type: Number,
-      required: false,
-    },
+  components: {
+    DatasetList, CesiumViewer, DatasetPanel,
   },
-  setup(props) {
-    const iframeSrc = computed(() => (openFile.value ? `${axiosInstance.defaults.baseURL}datasets/${props.datasetId}/viewer/${openFile.value}` : undefined));
+  setup() {
+    const footprints = ref({});
 
-    // Unset open file if the user navigates to a different URL
-    watch(() => props.datasetId, () => setOpenFile(''));
+    onMounted(async () => {
+      const { data } = await axiosInstance.get('/datasets/footprints/');
+      footprints.value = data;
+    });
 
     return {
-      iframeSrc,
+      footprints,
     };
   },
 });
