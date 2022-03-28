@@ -24,6 +24,7 @@
 <script lang="ts">
 import { defineComponent, ref } from '@vue/composition-api';
 import { axiosInstance } from '@/api';
+import router from '@/router';
 import { AxiosResponse } from 'axios';
 
 export default defineComponent({
@@ -36,7 +37,7 @@ export default defineComponent({
       });
 
     function viewDataset(datasetId: string) {
-      // TODO: implement focus view for dataset
+      router.push({ name: 'focus', params: { datasetId } });
     }
 
     return {

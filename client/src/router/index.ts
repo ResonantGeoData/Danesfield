@@ -18,6 +18,12 @@ const routes: Array<RouteConfig> = [
     props: true,
   },
   {
+    name: 'focus',
+    path: '/focus/:datasetId?',
+    component: Focus,
+    props: true,
+  },
+  {
     name: 'tasks',
     path: '/tasks',
     component: AlgorithmView,
