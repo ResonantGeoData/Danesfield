@@ -5,8 +5,10 @@ import pytest
 from pytest_factoryboy import register
 from rdoasis.algorithms.tests.factories import DatasetFactory
 from rest_framework.test import APIClient
-from rgd.models import ChecksumFile, FileSet
+from rgd.models import ChecksumFile
+from rgd_3d.management.commands.rgd_3d_demo import load_tiles_3d_files
 from rgd_3d.models import Mesh3D, Tiles3D
+from rgd_3d.tasks.jobs import task_read_3d_tiles_file
 from rgd_imagery.models import Image, ImageSet, Raster
 
 from .factories import DATA_DIR, ChecksumFileFactory, UserFactory
@@ -73,13 +75,9 @@ def mesh(sample_output_mesh):
 
 @pytest.fixture
 def tiles3d(sample_output_3d_tiles):
-    tiles_3d_fileset = FileSet.objects.create()
-    for file in sample_output_3d_tiles:
-        file.file_set = tiles_3d_fileset
-        file.save(update_fields=['file_set'])
-    return Tiles3D.objects.create(
-        json_file=tiles_3d_fileset.files.get(name__endswith='tileset.json')
-    )
+    pk = load_tiles_3d_files(['jacksonville-textured.zip'])[0]
+    task_read_3d_tiles_file(pk)
+    return Tiles3D.objects.get(pk=pk)
 
 
 register(ChecksumFileFactory)
