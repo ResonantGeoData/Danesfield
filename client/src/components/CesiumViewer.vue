@@ -1,17 +1,25 @@
 <script lang="ts">
+import 'cesium/Build/Cesium/Widgets/widgets.css';
 import {
   defineComponent,
   onMounted,
   PropType,
   ref,
   watch,
-}
-  from '@vue/composition-api';
-import Cesium from '@/plugins/cesium';
+} from '@vue/composition-api';
 import router from '@/router';
 import { addGeojson, cesiumViewer } from '@/store/cesium';
 import {
-  DataSourceCollection, Primitive, Entity, Cartesian2, DataSource,
+  DataSourceCollection,
+  Primitive,
+  Entity,
+  Cartesian2,
+  DataSource,
+  ScreenSpaceEventType,
+  Cartesian3,
+  Camera,
+  ScreenSpaceEventHandler,
+  Viewer,
 } from 'cesium';
 import { addPin } from '@/store/cesium/pins';
 import { imageryViewModels } from '@/utils/cesium';
@@ -32,7 +40,7 @@ export default defineComponent({
 
     onMounted(async () => {
       // Initialize the viewer - this works without a token
-      cesiumViewer.value = new Cesium.Viewer('cesiumContainer', {
+      cesiumViewer.value = new Viewer('cesiumContainer', {
         // imageryProvider: false,
         imageryProviderViewModels: imageryViewModels,
         selectedImageryProviderViewModel: imageryViewModels[5], // Voyager
@@ -48,9 +56,9 @@ export default defineComponent({
       cesiumViewer.value.baseLayerPicker.viewModel.terrainProviderViewModels.removeAll();
 
       cesiumViewer.value.forceResize();
-      Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
+      Camera.DEFAULT_VIEW_FACTOR = 0;
 
-      const handler = new Cesium.ScreenSpaceEventHandler(cesiumViewer.value.scene.canvas);
+      const handler = new ScreenSpaceEventHandler(cesiumViewer.value.scene.canvas);
       handler.setInputAction((movement: {position: Cartesian2}) => {
         const pickedObject: { primitive: Primitive; id: Entity } = cesiumViewer.value.scene.pick(
           movement.position,
@@ -72,7 +80,7 @@ export default defineComponent({
             router.push({ name: 'focus', params: { datasetId } });
           }
         });
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+      }, ScreenSpaceEventType.LEFT_CLICK);
     });
 
     // Add footprints/pins to globe
@@ -82,7 +90,7 @@ export default defineComponent({
           return;
         }
         const [x, y] = centroid(footprint).geometry.coordinates;
-        addPin(Cesium.Cartesian3.fromDegrees(x, y), i); // add pin to dataset location to globe
+        addPin(Cartesian3.fromDegrees(x, y), i); // add pin to dataset location to globe
         addGeojson(footprint); // add dataset footprint to globe
       });
     });

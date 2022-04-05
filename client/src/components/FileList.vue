@@ -61,7 +61,6 @@ import {
 import { axiosInstance } from '@/api';
 import { addVisibleOverlay, visibleOverlayIds } from '@/store/cesium/layers';
 import { cesiumViewer } from '@/store/cesium';
-import Cesium from '@/plugins/cesium';
 import { Cesium3DTileset } from 'cesium';
 import { addFootprint } from '@/store/cesium/footprints';
 
@@ -86,7 +85,9 @@ export default defineComponent({
     },
   },
   setup(props) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rasters = ref<any[]>([]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tiles3d = ref<any[]>([]);
 
     function rasterIsVisible(rasterId: number) {
@@ -102,7 +103,7 @@ export default defineComponent({
     }
 
     function tiles3dIsVisible(tiles3dId: number) {
-      const current: any = tiles3d.value.filter((tile: any) => tile.spatial_id === tiles3dId)[0];
+      const current = tiles3d.value.filter((tile) => tile.spatial_id === tiles3dId)[0];
       const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
       const { scene } = cesiumViewer.value;
       const { primitives } = scene;
@@ -116,7 +117,7 @@ export default defineComponent({
     }
 
     async function setTiles3dVisibility(tiles3dId: number) {
-      const current: any = tiles3d.value.filter((tile: any) => tile.spatial_id === tiles3dId)[0];
+      const current = tiles3d.value.filter((tile) => tile.spatial_id === tiles3dId)[0];
       const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
       const { scene } = cesiumViewer.value;
       const { primitives } = scene;
@@ -132,7 +133,7 @@ export default defineComponent({
       }
 
       // Otherwise, display it.
-      const tileset: Cesium3DTileset = new Cesium.Cesium3DTileset({
+      const tileset: Cesium3DTileset = new Cesium3DTileset({
         url: tilesetURL,
       });
       cesiumViewer.value.scene.primitives.add(tileset);
