@@ -58,7 +58,7 @@ setup(
         # TEMP: Remove once fixed in upstream django-rgd
         'psutil',
         # Install with git
-        'RD-OASIS @ git+https://github.com/ResonantGeoData/RD-OASIS@d0d87837d09f2ea61ceed760c83848135dc8fdf9',  # noqa
+        'RD-OASIS @ git+https://github.com/ResonantGeoData/RD-OASIS@531959cebf659070827d4c11c8a9f0e1db772470',  # noqa
     ],
     dependency_links=['https://girder.github.io/large_image_wheels'],
     extras_require={
