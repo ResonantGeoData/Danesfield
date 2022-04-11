@@ -13,10 +13,10 @@ import { addGeojson, cesiumViewer } from '@/store/cesium';
 import {
   DataSourceCollection, Primitive, Entity, Cartesian2, DataSource,
 } from 'cesium';
+import { addPin } from '@/store/cesium/pins';
 import { imageryViewModels } from '@/utils/cesium';
-import {  Polygon } from 'geojson';  // eslint-disable-line
-
-import { area, polygon, transformScale } from '@turf/turf';
+import { Polygon } from 'geojson';  // eslint-disable-line
+import { centroid } from '@turf/turf';
 
 export default defineComponent({
   name: 'CesiumViewer',
@@ -48,9 +48,6 @@ export default defineComponent({
       cesiumViewer.value.baseLayerPicker.viewModel.terrainProviderViewModels.removeAll();
 
       cesiumViewer.value.forceResize();
-      cesiumViewer.value.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(-93.849688, 40.690265, 4000000),
-      });
       Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
 
       const handler = new Cesium.ScreenSpaceEventHandler(cesiumViewer.value.scene.canvas);
@@ -78,28 +75,15 @@ export default defineComponent({
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     });
 
+    // Add footprints/pins to globe
     watch(() => props.footprints, (newFootprints) => {
-      // Scale up footprint size so they're visible from space
-      Object.values(newFootprints).forEach((footprint) => {
+      Object.values(newFootprints).forEach((footprint, i) => {
         if (!footprint?.coordinates) {
           return;
         }
-        const poly = polygon(footprint.coordinates);
-
-        let scale = 1;
-        let scaledPoly;
-        while (true) {
-          scaledPoly = transformScale(poly, scale);
-          if (area(scaledPoly) >= 10000000000) {
-            break;
-          }
-          scale += 1;
-        }
-        // eslint-disable-next-line no-param-reassign
-        footprint.coordinates = scaledPoly.geometry.coordinates;
-      });
-      Object.values(newFootprints).forEach((footprint: any) => {
-        addGeojson(footprint);
+        const [x, y] = centroid(footprint).geometry.coordinates;
+        addPin(Cesium.Cartesian3.fromDegrees(x, y), i); // add pin to dataset location to globe
+        addGeojson(footprint); // add dataset footprint to globe
       });
     });
 
