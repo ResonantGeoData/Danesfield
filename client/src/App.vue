@@ -65,7 +65,7 @@ export default defineComponent({
         class="mx-3"
         @change="onTabChange"
       >
-        <v-tab to="/">
+        <v-tab to="/explore">
           Explore
           <v-icon>mdi-compass</v-icon>
         </v-tab>

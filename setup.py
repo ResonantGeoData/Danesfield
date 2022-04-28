@@ -41,7 +41,6 @@ setup(
         'django-allauth',
         'django-click',
         'django-configurations[database,email]',
-        'django-csp',
         'django-extensions',
         'django-filter',
         'django-oauth-toolkit',

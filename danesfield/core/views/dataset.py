@@ -1,46 +1,88 @@
-from django.http.response import HttpResponseNotFound, HttpResponseRedirect
-from django.urls import reverse
+import json
+
+from django.contrib.gis.geos import MultiPoint, Point
+from django.http import JsonResponse
+from django.shortcuts import redirect
 from rdoasis.algorithms.models import Dataset
 from rdoasis.algorithms.views.algorithms import DatasetViewSet as BaseDatasetViewSet
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.request import Request
-from rgd.models import ChecksumFile
-from rgd_3d.models import Mesh3D, Tiles3D
-from rgd_imagery.models import Image, RasterMeta
+from rest_framework.response import Response
+from rgd_3d.models import Mesh3D, Mesh3DSpatial, Tiles3DMeta
+from rgd_imagery.models import RasterMeta
 
 
 class DatasetViewSet(BaseDatasetViewSet):
-    @action(detail=True, methods=['GET'], url_path='viewer/(?P<path>.+)')
-    def viewer(self, request: Request, pk: str, path: str):
-        """Redirects to the appropriate viewer for the given file."""
-        dataset: Dataset = get_object_or_404(Dataset, pk=pk)
-        checksum_file: ChecksumFile = get_object_or_404(dataset.files, name=path)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
 
-        # Try Image model
-        ingested_file = Image.objects.filter(file=checksum_file).first()
-        if ingested_file is not None:
-            raster_meta = ingested_file.imageset_set.first().raster.rastermeta
-            return HttpResponseRedirect(
-                reverse(RasterMeta.detail_view_name, kwargs={'pk': raster_meta.pk})
+        rasters = [
+            raster['pk']
+            for raster in RasterMeta.objects.filter(
+                parent_raster__image_set__images__file__in=instance.files.all()
+            ).values('pk')
+        ]
+        meshes = [
+            mesh['pk'] for mesh in Mesh3D.objects.filter(file__in=instance.files.all()).values('pk')
+        ]
+        tiles3d = [
+            tiles['pk']
+            for tiles in Tiles3DMeta.objects.filter(
+                source__json_file__in=instance.files.all()
+            ).values('pk')
+        ]
+
+        resp = serializer.data
+        resp['rasters'] = rasters
+        resp['meshes'] = meshes
+        resp['tiles3d'] = tiles3d
+
+        return Response(resp)
+
+    @action(detail=True, methods=['GET'], url_path='file/(?P<name>.+)')
+    def file(self, request: Request, pk: str, name: str):
+        """Download a file from a 3D tiles FileSet."""
+        dataset = get_object_or_404(Dataset.objects.all(), pk=pk)
+        file = get_object_or_404(dataset.files.all(), name=name)
+        return redirect(file.file.url, permanent=False)
+
+    @action(detail=False, methods=['GET'])
+    def footprints(self, request: Request):
+        resp = {}
+        for dataset in Dataset.objects.all():
+            # Collect footprints of every Raster/Mesh/3D Tiles in this Dataset
+            footprints = (
+                [
+                    json.loads(item['footprint'].json)
+                    for item in RasterMeta.objects.filter(
+                        parent_raster__image_set__images__file__in=dataset.files.all()
+                    ).values('footprint')
+                ]
+                + [
+                    json.loads(item['footprint'].json)
+                    for item in Tiles3DMeta.objects.filter(
+                        source__json_file__in=dataset.files.all()
+                    ).values('footprint')
+                ]
+                + [
+                    json.loads(item['footprint'].json)
+                    for item in Mesh3DSpatial.objects.filter(
+                        source__file__in=dataset.files.all()
+                    ).values('footprint')
+                ]
             )
 
-        # Try Mesh3D model
-        ingested_file = Mesh3D.objects.filter(file=checksum_file).first()
-        if ingested_file is not None:
-            return HttpResponseRedirect(
-                reverse(Mesh3D.detail_view_name, kwargs={'pk': ingested_file.pk})
-            )
+            # Flatten list of polygons into list of points
+            points = [
+                Point(coord[0], coord[1])
+                for footprint in footprints
+                for coords in footprint['coordinates']
+                for coord in coords
+            ]
 
-        # Try Tiles3D model
-        if checksum_file.file_set is not None:
-            tileset = checksum_file.file_set.files.filter(name__endswith='tileset.json').first()
-            if tileset is not None:
-                ingested_file = Tiles3D.objects.filter(json_file=tileset).first()
-                if ingested_file is not None:
-                    return HttpResponseRedirect(
-                        reverse(Tiles3D.detail_view_name, kwargs={'pk': ingested_file.pk})
-                    )
+            # Compute convex hull of this dataset
+            resp[dataset.pk] = json.loads(MultiPoint(points).convex_hull.json)
 
-        # No match found
-        return HttpResponseNotFound()
+        return JsonResponse(resp)
