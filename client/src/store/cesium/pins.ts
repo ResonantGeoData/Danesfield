@@ -1,9 +1,11 @@
 import { ref, watch } from '@vue/composition-api';
-import Cesium from '@/plugins/cesium';
-import { Cartesian3 } from 'cesium';
+import {
+  Cartesian3, Color, PinBuilder, VerticalOrigin,
+} from 'cesium';
+
 import { cesiumViewer } from '@/store/cesium';
 
-const pinBuilder = new Cesium.PinBuilder();
+const pinBuilder = new PinBuilder();
 
 export const visiblePins = ref<Record<string, Cartesian3>>({});
 
@@ -33,8 +35,8 @@ watch(visiblePins, (newPins, oldPins) => {
           name: key,
           position: coordinates,
           billboard: {
-            image: pinBuilder.fromColor(Cesium.Color.ROYALBLUE, 48).toDataURL(),
-            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            image: pinBuilder.fromColor(Color.ROYALBLUE, 48).toDataURL(),
+            verticalOrigin: VerticalOrigin.BOTTOM,
           },
         });
         pinSources[key] = source;
