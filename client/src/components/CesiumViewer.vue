@@ -5,26 +5,20 @@ import {
   onMounted,
   PropType,
   ref,
-  watch,
 } from '@vue/composition-api';
 import router from '@/router';
-import { addGeojson, cesiumViewer } from '@/store/cesium';
+import { cesiumViewer } from '@/store/cesium';
 import {
-  DataSourceCollection,
   Primitive,
   Entity,
   Cartesian2,
-  DataSource,
   ScreenSpaceEventType,
-  Cartesian3,
   Camera,
   ScreenSpaceEventHandler,
   Viewer,
 } from 'cesium';
-import { addPin } from '@/store/cesium/pins';
 import { imageryViewModels } from '@/utils/cesium';
 import { Polygon } from 'geojson';  // eslint-disable-line
-import { centroid } from '@turf/turf';
 
 export default defineComponent({
   name: 'CesiumViewer',
@@ -34,7 +28,7 @@ export default defineComponent({
       default: null,
     },
   },
-  setup(props) {
+  setup() {
     const properties = ref();
     const dialog = ref(false);
 
@@ -60,39 +54,12 @@ export default defineComponent({
 
       const handler = new ScreenSpaceEventHandler(cesiumViewer.value.scene.canvas);
       handler.setInputAction((movement: {position: Cartesian2}) => {
-        const pickedObject: { primitive: Primitive; id: Entity } = cesiumViewer.value.scene.pick(
+        const clickedObject: { primitive: Primitive; id: Entity } = cesiumViewer.value.scene.pick(
           movement.position,
         );
-        const datasources: DataSourceCollection = cesiumViewer.value.dataSources;
 
-        const clickedEntity = pickedObject.id;
-
-        let geoJsonSource: DataSource;
-        for (let i = 0; i < datasources.length; i += 1) {
-          geoJsonSource = datasources.get(i);
-          if (geoJsonSource.name === clickedEntity.properties?.name.getValue()) {
-            break;
-          }
-        }
-
-        Object.entries(props.footprints).forEach(([datasetId, footprint]) => {
-          if (JSON.stringify(footprint) === geoJsonSource.name) {
-            router.push({ name: 'focus', params: { datasetId } });
-          }
-        });
+        router.push({ name: 'focus', params: { datasetId: clickedObject.id.name as string } });
       }, ScreenSpaceEventType.LEFT_CLICK);
-    });
-
-    // Add footprints/pins to globe
-    watch(() => props.footprints, (newFootprints) => {
-      Object.values(newFootprints).forEach((footprint, i) => {
-        if (!footprint?.coordinates) {
-          return;
-        }
-        const [x, y] = centroid(footprint).geometry.coordinates;
-        addPin(Cartesian3.fromDegrees(x, y), i); // add pin to dataset location to globe
-        addGeojson(footprint); // add dataset footprint to globe
-      });
     });
 
     return {

@@ -53,7 +53,7 @@ watch(visibleFootprints, (newFootprints, oldFootprints) => {
     async ([key, footprint]) => {
       if (!Object.keys(oldFootprints).includes(key)) {
         // add footprint
-        footprintSources[key] = await addGeojson(footprint);
+        footprintSources[key] = await addGeojson(footprint, key);
         cesiumViewer.value.flyTo(footprintSources[key], {
           offset: new HeadingPitchRange(
             Math.toRadians(0),

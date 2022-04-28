@@ -9,7 +9,7 @@ const pinBuilder = new PinBuilder();
 
 export const visiblePins = ref<Record<string, Cartesian3>>({});
 
-export const addPin = async (position: Cartesian3, id: number) => {
+export const addPin = async (position: Cartesian3, id: string) => {
   visiblePins.value = { ...visiblePins.value, [id]: position };
 };
 
