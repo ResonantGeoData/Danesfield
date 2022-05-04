@@ -63,6 +63,7 @@ import { addVisibleOverlay, visibleOverlayIds } from '@/store/cesium/layers';
 import { cesiumViewer } from '@/store/cesium';
 import { Cesium3DTileset } from 'cesium';
 import { addFootprint } from '@/store/cesium/footprints';
+import { RasterMeta, Tiles3DMeta } from '@/types';
 
 export default defineComponent({
   name: 'FileList',
@@ -85,10 +86,8 @@ export default defineComponent({
     },
   },
   setup(props) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rasters = ref<any[]>([]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tiles3d = ref<any[]>([]);
+    const rasters = ref<RasterMeta[]>([]);
+    const tiles3d = ref<Tiles3DMeta[]>([]);
 
     function rasterIsVisible(rasterId: number) {
       return visibleOverlayIds.value?.includes(rasterId);
