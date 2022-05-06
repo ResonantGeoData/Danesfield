@@ -36,7 +36,7 @@ def remove_default_algorithm(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0003_auto_20211101_1631'),
+        ('core', '0001_default_site'),
     ]
 
     operations = [
