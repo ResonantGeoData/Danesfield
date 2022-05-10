@@ -44,7 +44,7 @@ setup(
         'django-extensions',
         'django-filter',
         'django-oauth-toolkit',
-        'django-rgd[configuration]==0.3.3',
+        'django-rgd[configuration]==0.3.7',
         'django-rgd-3d==0.3.3',
         'django-rgd-imagery==0.3.3',
         'djangorestframework',
