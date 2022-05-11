@@ -69,8 +69,6 @@ setup(
             'rasterio',
             'tox',
         ],
-        'worker': [
-            'docker',
-        ],
+        'worker': ['docker', 'kwiver', 'opencv-python-headless'],
     },
 )

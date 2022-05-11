@@ -9,6 +9,9 @@ from rgd.models import ChecksumFile
 from rgd_3d.management.commands.rgd_3d_demo import load_tiles_3d_files
 from rgd_3d.models import Mesh3D, Tiles3D
 from rgd_3d.tasks.jobs import task_read_3d_tiles_file
+from rgd_fmv.management.commands.rgd_fmv_demo import load_fmv_files
+from rgd_fmv.management.commands.rgd_fmv_wasabi import FMV_FILES
+from rgd_fmv.models import FMV
 from rgd_imagery.models import Image, ImageSet, Raster
 
 from .factories import DATA_DIR, ChecksumFileFactory, UserFactory
@@ -78,6 +81,12 @@ def tiles3d(sample_output_3d_tiles):
     pk = load_tiles_3d_files(['jacksonville-textured.zip'])[0]
     task_read_3d_tiles_file(pk)
     return Tiles3D.objects.get(pk=pk)
+
+
+@pytest.fixture
+def fmv():
+    pk = load_fmv_files(FMV_FILES)[0]
+    return FMV.objects.get(pk=pk)
 
 
 register(ChecksumFileFactory)
