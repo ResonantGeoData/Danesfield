@@ -12,6 +12,8 @@ services:
     image: rabbitmq:management
     ports:
       - ${DOCKER_RABBITMQ_PORT-5672}:5672
+    volumes:
+      - ./dev/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
 
   minio:
     image: minio/minio:latest
