@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import { GeoJSON } from 'geojson';
+import type { GeoJSON } from 'geojson';
 
 export interface Paginated<T> {
   count: number;
