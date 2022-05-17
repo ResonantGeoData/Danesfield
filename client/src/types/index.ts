@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import type { GeoJSON } from 'geojson';
+import type { GeoJSON, MultiPoint, MultiPolygon } from 'geojson';
 
 export interface Paginated<T> {
   count: number;
@@ -98,4 +98,21 @@ export interface Tiles3D extends Model {
 export interface Tiles3DMeta extends SpatialEntry {
   source: Tiles3D;
   subentry_type: 'Tiles3DMeta';
+}
+
+export interface FMV extends Model {
+  file: ChecksumFile;
+  frame_rate: number;
+  klv_file: string;
+  web_video_file: string;
+}
+
+export interface FMVMeta extends SpatialEntry {
+  fmv_file: FMV;
+  frame_numbers: string;
+  flight_path: MultiPoint;
+  ground_frames: MultiPolygon;
+  ground_union: MultiPolygon;
+  instrumentation?: string;
+  subentry_type: 'FMVMeta';
 }
