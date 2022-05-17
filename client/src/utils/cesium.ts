@@ -1,4 +1,6 @@
+import * as Cesium from 'cesium';
 import { buildModuleUrl, ProviderViewModel, UrlTemplateImageryProvider } from 'cesium';
+import { cesiumViewer } from '@/store/cesium';
 
 /* Stamen's website (http://maps.stamen.com) as of 2019-08-28 says that the
  * maps they host may be used free of charge.  For http access, use a url like
@@ -175,3 +177,64 @@ export const imageryViewModels = [
     },
   }),
 ];
+
+export function renderFlightPath(id: number, flightData: number[][]): Cesium.Entity {
+  // ref: https://cesium.com/learn/cesiumjs-learn/cesiumjs-flight-tracker/
+  const timeStepInSeconds = 30;
+  const totalSeconds = timeStepInSeconds * (flightData.length - 1);
+  const start = Cesium.JulianDate.fromIso8601('2020-03-09T23:10:00Z');
+  const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
+  cesiumViewer.value.clock.startTime = start.clone();
+  cesiumViewer.value.clock.stopTime = stop.clone();
+  cesiumViewer.value.clock.currentTime = start.clone();
+  cesiumViewer.value.timeline.zoomTo(start, stop);
+  // Speed up the playback speed 50x.
+  cesiumViewer.value.clock.multiplier = 50;
+  // Start playing the scene.
+  cesiumViewer.value.clock.shouldAnimate = true;
+
+  // The SampledPositionedProperty stores the position and timestamp for each
+  // sample along the radar sample series.
+  const positionProperty = new Cesium.SampledPositionProperty();
+
+  for (let i = 0; i < flightData.length; i += 1) {
+    const dataPoint = flightData[i];
+
+    // Declare the time for this individual sample
+    // and store it in a new JulianDate instance.
+    const time = Cesium.JulianDate.addSeconds(
+      start, i * timeStepInSeconds, new Cesium.JulianDate(),
+    );
+    const position = Cesium.Cartesian3.fromDegrees(dataPoint[0], dataPoint[1]);
+
+    // Store the position along with its timestamp.
+    // Here we add the positions all upfront, but these can be added at run-time as
+    // samples are received from a server.
+    positionProperty.addSample(time, position);
+
+    cesiumViewer.value.entities.add({
+      id: `flight_path_${id}_point_${position.x}_${position.y}_${position.z}`,
+      description: `Location: (${position.x}, ${position.y}, ${position.z})`,
+      position,
+      point: { pixelSize: 10, color: Cesium.Color.RED },
+    });
+  }
+  // Create an entity to both visualize the entire radar sample series with a
+  // line and add a point that moves along the samples.
+  const airplaneEntity = cesiumViewer.value.entities.add({
+    id: `flight_path_${id}_airplane`,
+    availability: new Cesium.TimeIntervalCollection([new Cesium.TimeInterval({ start, stop })]),
+    position: positionProperty,
+    point: { pixelSize: 30, color: Cesium.Color.GREEN },
+    path: new Cesium.PathGraphics({ width: 3 }),
+  });
+
+  cesiumViewer.value.flyTo(airplaneEntity, {
+    offset: new Cesium.HeadingPitchRange(
+      Cesium.Math.toRadians(0),
+      Cesium.Math.toRadians(-90.0),
+    ),
+  });
+
+  return airplaneEntity;
+}
