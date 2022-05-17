@@ -9,6 +9,7 @@
       :raster-ids="properties.rasters"
       :mesh-ids="properties.meshes"
       :tiles3d-ids="properties.tiles3d"
+      :fmv-ids="properties.fmvs"
     />
   </div>
 </template>
