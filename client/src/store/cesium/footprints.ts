@@ -1,32 +1,44 @@
 import { GeoJsonDataSource, HeadingPitchRange, Math } from 'cesium';
 import { ref, watch } from '@vue/composition-api';
 import { cesiumViewer, addGeojson } from '@/store/cesium';
-import { rgdImagery, rgdTiles3d } from '@/api';
 import { GeoJSON } from 'geojson';  // eslint-disable-line
 
 export const visibleFootprints = ref<Record<string, GeoJSON >>({});
 
-export const addFootprint = async (spatialId: number, imagery?: boolean) => {
-  let key;
-  let footprint;
-  if (imagery) {
-    footprint = (await rgdImagery(spatialId)).outline;
-    key = `imagery_${spatialId}`;
-  } else {
-    footprint = (await rgdTiles3d(spatialId)).outline;
-    key = `tiles3d_${spatialId}`;
+export const addFootprint = async (spatialId: number, footprint: GeoJSON|undefined, type: 'imagery' | 'tiles3d' | 'fmv') => {
+  let key: string;
+  switch (type) {
+    case 'imagery':
+      key = `imagery_${spatialId}`;
+      break;
+    case 'tiles3d':
+      key = `tiles3d_${spatialId}`;
+      break;
+    case 'fmv':
+      key = `fmv_${spatialId}`;
+      break;
+    default:
+      return;
   }
   if (key && footprint) {
     visibleFootprints.value = { ...visibleFootprints.value, [key]: footprint };
   }
 };
 
-export const removeFootprint = (spatialId: number, imagery?: boolean) => {
+export const removeFootprint = (spatialId: number, type: 'imagery' | 'tiles3d' | 'fmv') => {
   let key: string;
-  if (imagery) {
-    key = `imagery_${spatialId}`;
-  } else {
-    key = `tiles3d_${spatialId}`;
+  switch (type) {
+    case 'imagery':
+      key = `imagery_${spatialId}`;
+      break;
+    case 'tiles3d':
+      key = `tiles3d_${spatialId}`;
+      break;
+    case 'fmv':
+      key = `fmv_${spatialId}`;
+      break;
+    default:
+      return;
   }
   if (visibleFootprints.value[key]) {
     visibleFootprints.value = Object.fromEntries(
