@@ -6,17 +6,8 @@ import {
   PropType,
   ref,
 } from '@vue/composition-api';
-import router from '@/router';
 import { cesiumViewer } from '@/store/cesium';
-import {
-  Primitive,
-  Entity,
-  Cartesian2,
-  ScreenSpaceEventType,
-  Camera,
-  ScreenSpaceEventHandler,
-  Viewer,
-} from 'cesium';
+import { Camera, Viewer } from 'cesium';
 import { imageryViewModels } from '@/utils/cesium';
 import { Polygon } from 'geojson';  // eslint-disable-line
 
@@ -39,7 +30,8 @@ export default defineComponent({
         imageryProviderViewModels: imageryViewModels,
         selectedImageryProviderViewModel: imageryViewModels[5], // Voyager
         animation: false,
-        timeline: false,
+        shouldAnimate: true,
+        timeline: true,
         infoBox: false,
         homeButton: false,
         fullscreenButton: false,
@@ -51,15 +43,6 @@ export default defineComponent({
 
       cesiumViewer.value.forceResize();
       Camera.DEFAULT_VIEW_FACTOR = 0;
-
-      const handler = new ScreenSpaceEventHandler(cesiumViewer.value.scene.canvas);
-      handler.setInputAction((movement: {position: Cartesian2}) => {
-        const clickedObject: { primitive: Primitive; id: Entity } = cesiumViewer.value.scene.pick(
-          movement.position,
-        );
-
-        router.push({ name: 'focus', params: { datasetId: clickedObject.id.name as string } });
-      }, ScreenSpaceEventType.LEFT_CLICK);
     });
 
     return {
