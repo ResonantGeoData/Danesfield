@@ -55,8 +55,6 @@ setup(
         'django-composed-configuration[prod]>=0.21.0',
         'django-s3-file-field[boto3]',
         'gunicorn',
-        # TEMP: Remove once fixed in upstream django-rgd
-        'psutil',
         # Install with git
         'RD-OASIS @ git+https://github.com/ResonantGeoData/RD-OASIS@531959cebf659070827d4c11c8a9f0e1db772470',  # noqa
     ],
