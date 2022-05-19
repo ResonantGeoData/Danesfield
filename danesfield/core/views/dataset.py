@@ -10,6 +10,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rgd_3d.models import Mesh3D, Mesh3DSpatial, Tiles3DMeta
+from rgd_fmv.models import FMVMeta
 from rgd_imagery.models import RasterMeta
 
 
@@ -33,11 +34,16 @@ class DatasetViewSet(BaseDatasetViewSet):
                 source__json_file__in=instance.files.all()
             ).values('pk')
         ]
+        fmvs = [
+            fmv['pk']
+            for fmv in FMVMeta.objects.filter(fmv_file__file__in=instance.files.all()).values('pk')
+        ]
 
         resp = serializer.data
         resp['rasters'] = rasters
         resp['meshes'] = meshes
         resp['tiles3d'] = tiles3d
+        resp['fmvs'] = fmvs
 
         return Response(resp)
 
@@ -70,6 +76,12 @@ class DatasetViewSet(BaseDatasetViewSet):
                     json.loads(item['footprint'].json)
                     for item in Mesh3DSpatial.objects.filter(
                         source__file__in=dataset.files.all()
+                    ).values('footprint')
+                ]
+                + [
+                    json.loads(item['footprint'].json)
+                    for item in FMVMeta.objects.filter(
+                        fmv_file__file__in=dataset.files.all()
                     ).values('footprint')
                 ]
             )

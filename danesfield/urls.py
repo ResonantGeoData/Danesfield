@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
     path('', include('rgd.urls')),
     path('', include('rgd_3d.urls')),
+    path('', include('rgd_fmv.urls')),
     path('', include('rgd_imagery.urls')),
 ]
 

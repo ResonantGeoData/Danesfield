@@ -14,20 +14,24 @@ from rdoasis.algorithms.tasks.common import ManagedTask
 from rdoasis.algorithms.tasks.docker import _run_algorithm_task_docker
 import requests
 from rgd.models import FileSet
+from rgd.models.utils import yield_checksumfiles
 from rgd_3d.models import Mesh3D, Tiles3D
+from rgd_fmv.models import FMV
 from rgd_imagery.models import Image, ImageSet, Raster
 
-from danesfield.core.utils import danesfield_algorithm
+from danesfield.core.utils import danesfield_algorithm, telesculptor_algorithm
 
 logger = get_task_logger(__name__)
 
 RGD_IMAGERY_EXTENSIONS = ('.tif', '.png')
+RGD_FMV_EXTENSIONS = ('.mpg', '.mp4')
 RGD_3D_EXTENSIONS = ('.ply', '.obj')
 
 
 def _ingest_checksum_files(dataset: Dataset):
     images: List[Image] = []
     meshes: List[Mesh3D] = []
+    fmvs: List[FMV] = []
     for checksum_file in dataset.files.all():
         extension: str = Path(checksum_file.name).suffix
 
@@ -38,6 +42,8 @@ def _ingest_checksum_files(dataset: Dataset):
             images.append(Image(file=checksum_file))
         elif extension in RGD_3D_EXTENSIONS:
             meshes.append(Mesh3D(file=checksum_file))
+        elif extension in RGD_FMV_EXTENSIONS:
+            fmvs.append(FMV(file=checksum_file))
 
         # 3D tiles is a special case - save all associated files into the
         # database all at once
@@ -62,6 +68,10 @@ def _ingest_checksum_files(dataset: Dataset):
 
     if meshes:
         Mesh3D.objects.bulk_create(meshes)
+
+    if fmvs:
+        FMV.objects.bulk_create(fmvs)
+        run_telesculptor(dataset.pk)
 
 
 class DanesfieldTask(ManagedTask):
@@ -132,11 +142,37 @@ class DanesfieldTask(ManagedTask):
         self._write_config_file()
 
 
+class KWIVERTask(ManagedTask):
+    def __call__(self, **kwargs):
+        self._setup(**kwargs)
+        shutil.copy(
+            str(Path(__file__).parent.parent.parent.parent / 'telesculptor.sh'), self.input_dir
+        )
+        with yield_checksumfiles(self.algorithm_task.input_dataset.files.all(), self.input_dir):
+            return self.run(**kwargs)
+
+    def on_success(self, retval, task_id, args, kwargs):
+        super().on_success(retval, task_id, args, kwargs)
+
+        # Now, run Danesfield on the point cloud outputted by KWIVER
+        run_danesfield(self.algorithm_task.output_dataset.pk)
+
+
 @celery.shared_task(base=DanesfieldTask, bind=True)
 def run_danesfield_task(self: DanesfieldTask, *args, **kwargs):
+    _run_algorithm_task_docker(self, *args, **kwargs)
+
+
+@celery.shared_task(base=KWIVERTask, bind=True)
+def run_kwiver_task(self: KWIVERTask, *args, **kwargs):
     _run_algorithm_task_docker(self, *args, **kwargs)
 
 
 def run_danesfield(input_dataset_pk: Union[str, int]) -> AlgorithmTask:
     danesfield = danesfield_algorithm()
     return danesfield.run(input_dataset_pk, celery_task=run_danesfield_task)
+
+
+def run_telesculptor(input_dataset_pk: Union[str, int]) -> AlgorithmTask:
+    telesculptor = telesculptor_algorithm()
+    return telesculptor.run(input_dataset_pk, celery_task=run_kwiver_task)

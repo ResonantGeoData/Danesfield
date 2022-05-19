@@ -16,7 +16,7 @@ To run the application, do the following:
 1. Run `docker-compose up`
 2. In a seperate window, activate the virtual environment created previously in "Initial Setup" and run the following commands:
    1. `source ./dev/export-env.sh`
-   2. `celery --app danesfield.celery worker --loglevel INFO --without-heartbeat`
+   2. `celery --app danesfield.celery worker --loglevel INFO --heartbeat-interval 60`
 3. Access the site, starting at http://localhost:8000/admin/
 4. When finished, use `Ctrl+C`
 
@@ -49,7 +49,7 @@ but allows developers to run Python code on their native system.
    2. `./manage.py runserver`
 3. Run in a separate terminal:
    1. `source ./dev/export-env.sh`
-   2. `celery --app danesfield.celery worker --loglevel INFO --without-heartbeat`
+   2. `celery --app danesfield.celery worker --loglevel INFO --heartbeat-interval 60`
 4. When finished, run `docker-compose stop`
 
 ## Remap Service Ports (optional)
