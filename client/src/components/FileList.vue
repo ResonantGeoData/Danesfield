@@ -1,101 +1,122 @@
 <template>
-  <v-simple-table v-if="!loading">
-    <template v-slot:default>
-      <thead>
-        <tr>
-          <th class="text-left">
-            File Name
-          </th>
-          <th class="text-left">
-            File Type
-          </th>
-          <th class="text-left">
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="tileset in tiles3d"
-          :key="tileset.spatial_id"
-        >
-          <td>{{ tileset.source.name }}</td>
-          <td>3D Tiles</td>
-          <td>
-            <v-btn
-              icon
-              @click="setTiles3dVisibility(tileset.spatial_id)"
-            >
-              <v-icon :color="tiles3dIsVisible(tileset.spatial_id) ? 'success' : ''">
-                mdi-eye
-              </v-icon>
-            </v-btn>
-          </td>
-        </tr>
-        <tr
-          v-for="raster in rasters"
-          :key="raster.spatial_id"
-        >
-          <td>{{ raster.parent_raster.name }}</td>
-          <td>Raster</td>
-          <td>
-            <v-btn
-              icon
-              @click="setRasterVisibility(raster.spatial_id)"
-            >
-              <v-icon :color="rasterIsVisible(raster.spatial_id) ? 'success' : ''">
-                mdi-eye
-              </v-icon>
-            </v-btn>
-          </td>
-        </tr>
-        <tr
-          v-for="fmv in Object.values(fmvs)"
-          :key="fmv.spatial_id"
-        >
-          <td
-            class="text-truncate"
-            style="max-width: 350px;"
+  <div>
+    <v-simple-table v-if="!loading">
+      <template v-slot:default>
+        <thead>
+          <tr>
+            <th class="text-left">
+              File Name
+            </th>
+            <th class="text-left">
+              File Type
+            </th>
+            <th class="text-left">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="tileset in tiles3d"
+            :key="tileset.spatial_id"
           >
-            {{ fmv.subentry_name }}
-          </td>
-          <td>FMV</td>
-          <td>
-            <v-btn
-              icon
-              @click="setFMVFootprintVisibility(fmv.spatial_id)"
-            >
-              <v-progress-circular
-                v-if="loading"
-                indeterminate
-              />
-              <v-icon
-                v-else
-                :color="fmvFootprintIsVisible(fmv.spatial_id) ? 'success' : ''"
+            <td>{{ tileset.source.name }}</td>
+            <td>3D Tiles</td>
+            <td>
+              <v-btn
+                icon
+                @click="setTiles3dVisibility(tileset.spatial_id)"
               >
-                mdi-foot-print
-              </v-icon>
-            </v-btn>
-            <v-btn
-              icon
-              @click="setFMVFlightPathVisibility(fmv.spatial_id)"
-            >
-              <v-progress-circular
-                v-if="loading"
-                indeterminate
-              />
-              <v-icon
-                v-else
-                :color="fmvFlightPathIsVisible(fmv.spatial_id) ? 'success' : ''"
+                <v-icon :color="tiles3dIsVisible(tileset.spatial_id) ? 'success' : ''">
+                  mdi-eye
+                </v-icon>
+              </v-btn>
+            </td>
+          </tr>
+          <tr
+            v-for="raster in rasters"
+            :key="raster.spatial_id"
+          >
+            <td>{{ raster.parent_raster.name }}</td>
+            <td>Raster</td>
+            <td>
+              <v-btn
+                icon
+                @click="setRasterVisibility(raster.spatial_id)"
               >
-                mdi-airplane
-              </v-icon>
-            </v-btn>
-          </td>
-        </tr>
-      </tbody>
-    </template>
-  </v-simple-table>
+                <v-icon :color="rasterIsVisible(raster.spatial_id) ? 'success' : ''">
+                  mdi-eye
+                </v-icon>
+              </v-btn>
+            </td>
+          </tr>
+          <tr
+            v-for="fmv in Object.values(fmvs)"
+            :key="fmv.spatial_id"
+          >
+            <td
+              class="text-truncate"
+              style="max-width: 350px;"
+            >
+              {{ fmv.subentry_name }}
+            </td>
+            <td>FMV</td>
+            <td>
+              <v-btn
+                icon
+                @click="setFMVFootprintVisibility(fmv.spatial_id)"
+              >
+                <v-progress-circular
+                  v-if="loading"
+                  indeterminate
+                />
+                <v-icon
+                  v-else
+                  :color="fmvFootprintIsVisible(fmv.spatial_id) ? 'success' : ''"
+                >
+                  mdi-foot-print
+                </v-icon>
+              </v-btn>
+              <v-btn
+                icon
+                @click="setFMVFlightPathVisibility(fmv.spatial_id)"
+              >
+                <v-progress-circular
+                  v-if="loading"
+                  indeterminate
+                />
+                <v-icon
+                  v-else
+                  :color="fmvFlightPathIsVisible(fmv.spatial_id) ? 'success' : ''"
+                >
+                  mdi-airplane
+                </v-icon>
+              </v-btn>
+              <v-btn
+                icon
+                @click="setVideoSrc(fmv.spatial_id)"
+              >
+                <v-progress-circular
+                  v-if="loading"
+                  indeterminate
+                />
+                <v-icon
+                  v-else
+                  :color="fmvBeingViewed ? 'success' : ''"
+                >
+                  mdi-eye
+                </v-icon>
+              </v-btn>
+            </td>
+          </tr>
+        </tbody>
+      </template>
+    </v-simple-table>
+    <FMVViewer
+      v-if="fmvBeingViewed"
+      :fmv-meta="fmvBeingViewed"
+    />
+  </div>
 </template>
 
 <script lang="ts">
@@ -109,9 +130,11 @@ import * as Cesium from 'cesium';
 import { addFootprint, removeFootprint, visibleFootprints } from '@/store/cesium/footprints';
 import { FMVMeta, RasterMeta, Tiles3DMeta } from '@/types';
 import { renderFlightPath } from '@/utils/cesium';
+import FMVViewer from './FMVViewer.vue';
 
 export default defineComponent({
   name: 'FileList',
+  components: { FMVViewer },
   props: {
     datasetId: {
       type: String,
@@ -138,6 +161,8 @@ export default defineComponent({
     const rasters = ref<RasterMeta[]>([]);
     const tiles3d = ref<Tiles3DMeta[]>([]);
     const fmvs = ref<Record<number, FMVMeta>>({});
+
+    const fmvBeingViewed = ref<FMVMeta | null>(null);
 
     const loading = ref(true);
 
@@ -189,6 +214,14 @@ export default defineComponent({
       });
       cesiumViewer.value.scene.primitives.add(tileset);
       addFootprint(current.spatial_id, current.footprint, 'tiles3d');
+    }
+
+    function setVideoSrc(fmvId: number) {
+      if (!fmvBeingViewed.value) {
+        fmvBeingViewed.value = fmvs.value[fmvId];
+      } else {
+        fmvBeingViewed.value = null;
+      }
     }
 
     function fmvFootprintIsVisible(fmvId: number) {
@@ -288,10 +321,12 @@ export default defineComponent({
       rasters,
       tiles3d,
       fmvs,
+      fmvBeingViewed,
       setRasterVisibility,
       setTiles3dVisibility,
       setFMVFootprintVisibility,
       setFMVFlightPathVisibility,
+      setVideoSrc,
       fmvFootprintIsVisible,
       fmvFlightPathIsVisible,
       tiles3dIsVisible,
