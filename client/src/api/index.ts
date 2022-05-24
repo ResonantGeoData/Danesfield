@@ -2,22 +2,29 @@ import axios from 'axios';
 import OauthClient from '@girder/oauth-client';
 import { GeoJSON, Polygon, MultiPolygon } from 'geojson'; // eslint-disable-line
 import { stringify } from 'qs';  // eslint-disable-line
-import { reactive } from 'vue';
+import { ref } from 'vue';
 
 export const axiosInstance = axios.create({
   baseURL: `${import.meta.env.VUE_APP_API_ROOT}api`,
   paramsSerializer: (params) => stringify(params, { arrayFormat: 'repeat' }),
 });
-export const oauthClient = reactive(new OauthClient(
-  import.meta.env.VUE_APP_OAUTH_API_ROOT as string,
-  import.meta.env.VUE_APP_OAUTH_CLIENT_ID as string,
-));
+
+const redirectUrl = new URL((import.meta.env.VUE_APP_LOGIN_REDIRECT || location.origin) as string);
+const baseUrl = new URL(import.meta.env.VUE_APP_OAUTH_API_ROOT as string);
+const clientId = import.meta.env.VUE_APP_OAUTH_CLIENT_ID as string;
+
+export const oauthClient = new OauthClient(baseUrl, clientId, { redirectUrl });
+
+export const loggedIn = ref(oauthClient.isLoggedIn);
+
+export async function logout() {
+  await oauthClient?.logout();
+  loggedIn.value = false;
+}
 
 export async function restoreLogin() {
-  if (!oauthClient) {
-    return;
-  }
   await oauthClient.maybeRestoreLogin();
+  loggedIn.value = oauthClient.isLoggedIn;
 }
 
 axiosInstance.interceptors.request.use((config) => ({
