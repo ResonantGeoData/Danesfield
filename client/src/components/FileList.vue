@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-simple-table v-if="!loading">
+    <v-table v-if="!loading">
       <template #default>
         <thead>
           <tr>
@@ -111,7 +111,7 @@
           </tr>
         </tbody>
       </template>
-    </v-simple-table>
+    </v-table>
     <FMVViewer
       v-if="fmvBeingViewed"
       :fmv-meta="fmvBeingViewed"
