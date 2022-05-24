@@ -281,7 +281,7 @@ export default defineComponent({
           );
         // If anywhere besides the flight path is clicked, disable any camera tracking
         if (cesiumViewer.value.trackedEntity) {
-          cesiumViewer.value.trackedEntity = null;
+          cesiumViewer.value.trackedEntity = undefined;
         } else if (clickedObject?.id.id?.startsWith(`flight_path_${fmvId}`)) {
           // If the flight path is clicked, make the camera track it
           cesiumViewer.value.trackedEntity = airplaneEntity;

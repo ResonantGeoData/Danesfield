@@ -66,12 +66,12 @@ watch(visibleFootprints, (newFootprints, oldFootprints) => {
       if (!Object.keys(oldFootprints).includes(key)) {
         // add footprint
         footprintSources[key] = await addGeojson(footprint, key);
-        cesiumViewer.value.zoomTo(footprintSources[key], {
-          offset: new Cesium.HeadingPitchRange(
+        cesiumViewer.value.zoomTo(footprintSources[key],
+          new Cesium.HeadingPitchRange(
             Cesium.Math.toRadians(0),
             Cesium.Math.toRadians(-90.0),
           ),
-        });
+        );
       }
     },
   );

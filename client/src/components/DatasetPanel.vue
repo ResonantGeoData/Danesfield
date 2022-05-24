@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="properties">
     <span class="text-h6 justify-center d-flex">
       {{ properties.name }}
     </span>
@@ -29,7 +29,7 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const properties = ref();
+    const properties = ref(null);
 
     watch(() => props.datasetId, async () => {
       const { data } = await axiosInstance.get(`/datasets/${props.datasetId}/`);

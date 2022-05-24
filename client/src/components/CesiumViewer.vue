@@ -38,7 +38,7 @@ export default defineComponent({
         geocoder: false,
       });
       // Remove the Terrain section of the baseLayerPicker
-      cesiumViewer.value.baseLayerPicker.viewModel.terrainProviderViewModels.removeAll();
+      cesiumViewer.value.baseLayerPicker.viewModel.terrainProviderViewModels = [];
 
       cesiumViewer.value.forceResize();
       Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;

@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { ref } from 'vue';
+import { ref, Ref } from 'vue';
 import { GeoJSON } from 'geojson';  // eslint-disable-line
 
 // Limit the tile requests on RGD server so that Vue app's requests aren't hung
@@ -8,7 +8,7 @@ import { GeoJSON } from 'geojson';  // eslint-disable-line
 // };
 Cesium.RequestScheduler.maximumRequestsPerServer = 3;
 
-export const cesiumViewer = ref();
+export const cesiumViewer = ref() as Ref<Cesium.Viewer>;
 
 /* eslint-disable @typescript-eslint/camelcase */
 const HUERISTIC_STATUS_DATA = {

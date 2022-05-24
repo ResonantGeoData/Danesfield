@@ -12,7 +12,7 @@ export const visibleOverlayIds = ref<number[]>();
 
 export const tileImageParams: Record<string, TileParamsType> = {};
 
-const tileLayers: Record<string, {alpha: number}> = {}; // Cesium.TileLayer
+const tileLayers: Record<string, Cesium.ImageryLayer> = {}; // Cesium.TileLayer
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const addVisibleOverlay = (spatialId: number) => {
