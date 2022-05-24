@@ -2235,14 +2235,6 @@
     find-cache-dir "^3.3.2"
     upath "^2.0.1"
 
-"@vuetify/vite-plugin@^1.0.0-alpha.10":
-  version "1.0.0-alpha.11"
-  resolved "https://registry.yarnpkg.com/@vuetify/vite-plugin/-/vite-plugin-1.0.0-alpha.11.tgz#43cd0fa4134da2467d7dd134b35b5d21a54ddfca"
-  integrity sha512-ADAEubiF+2VHbcsJs0nWCBThc4LX+mGnioYrF0O+jKTvCICT1PJKpp15+M7ZyyM9sAkEFpVH+5FaH5/Ywj7RWg==
-  dependencies:
-    "@vuetify/loader-shared" "^1.4.0"
-    debug "^4.3.3"
-
 abab@^2.0.3, abab@^2.0.5:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/abab/-/abab-2.0.6.tgz#41b80f2c871d19686216b82309231cfd3cb3d291"
@@ -5580,6 +5572,14 @@ vite-plugin-eslint@^1.3.0:
     "@rollup/pluginutils" "^4.2.1"
     "@types/eslint" "^8.4.2"
     rollup "^2.70.2"
+
+vite-plugin-vuetify@^1.0.0-alpha.11:
+  version "1.0.0-alpha.11"
+  resolved "https://registry.yarnpkg.com/vite-plugin-vuetify/-/vite-plugin-vuetify-1.0.0-alpha.11.tgz#7df951f0a65b8d73b0f3b66b917f99a20e3eb6de"
+  integrity sha512-YqnirQhGfG1skj1Z41DVh0WqSjoJ/BtcfZvnGVkcBrfRe+pFg4lHV2mI3K5LdjCeBxzHqofxlz6J6ciyRvrqcA==
+  dependencies:
+    "@vuetify/loader-shared" "^1.4.0"
+    debug "^4.3.3"
 
 vite@^2.8.0:
   version "2.9.9"
