@@ -1,5 +1,5 @@
 import { Color, GeoJsonDataSource, RequestScheduler } from 'cesium';
-import { ref } from '@vue/composition-api';
+import { ref } from 'vue';
 import { GeoJSON } from 'geojson';  // eslint-disable-line
 
 // Limit the tile requests on RGD server so that Vue app's requests aren't hung

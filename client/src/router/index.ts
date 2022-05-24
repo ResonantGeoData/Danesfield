@@ -1,38 +1,36 @@
-import Vue from 'vue';
-import VueRouter, { RouteConfig } from 'vue-router';
+import { createWebHashHistory, RouterOptions } from 'vue-router';
 import AlgorithmView from '@/views/AlgorithmView.vue';
-import Explore from '@/views/Explore.vue';
-import Focus from '@/views/Focus.vue';
+import ExploreView from '@/views/ExploreView.vue';
+import FocusView from '@/views/FocusView.vue';
 
-Vue.use(VueRouter);
+function makeOptions(): RouterOptions {
+  return {
+    history: createWebHashHistory(),
+    routes: [
+      {
+        path: '/',
+        redirect: 'explore',
+      },
+      {
+        name: 'explore',
+        path: '/explore',
+        component: ExploreView,
+        props: true,
+      },
+      {
+        name: 'focus',
+        path: '/focus/:datasetId?',
+        component: FocusView,
+        props: true,
+      },
+      {
+        name: 'tasks',
+        path: '/tasks',
+        component: AlgorithmView,
+        props: true,
+      },
+    ],
+  };
+}
 
-const routes: Array<RouteConfig> = [
-  {
-    path: '/',
-    redirect: 'explore',
-  },
-  {
-    name: 'explore',
-    path: '/explore',
-    component: Explore,
-    props: true,
-  },
-  {
-    name: 'focus',
-    path: '/focus/:datasetId?',
-    component: Focus,
-    props: true,
-  },
-  {
-    name: 'tasks',
-    path: '/tasks',
-    component: AlgorithmView,
-    props: true,
-  },
-];
-
-const router = new VueRouter({
-  routes,
-});
-
-export default router;
+export default makeOptions;

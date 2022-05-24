@@ -1,34 +1,47 @@
-import Vue from 'vue';
-import { Ion as CesiumIon } from 'cesium';
+import '@mdi/font/css/materialdesignicons.css';
+import 'vuetify/styles';
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
 import * as Sentry from '@sentry/vue';
+import { createApp, } from 'vue';
+import { createRouter } from 'vue-router';
+import { createVuetify } from 'vuetify';
+import * as Cesium from 'cesium';
 
-// Composition plugin must be the first local import
-import '@/plugins/composition';
 import App from './App.vue';
-import router from './router';
-import vuetify from './plugins/vuetify';
-import { restoreLogin, oauthClient, axiosInstance } from './api';
+import { restoreLogin, oauthClient } from './api';
+import makeOptions from './router';
 
-// Set token to `null` to avoid warning
-CesiumIon.defaultAccessToken = '';
+// Set token to empty string to avoid warning
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+Cesium.Ion.defaultAccessToken = '';
 
-Sentry.init({
-  Vue,
-  dsn: process.env.VUE_APP_SENTRY_DSN,
+const app = createApp(App);
+const Vuetify = createVuetify({
+  components,
+  directives,
 });
 
-async function login() {
-  return restoreLogin();
-}
+restoreLogin().then(() => {
+  /*
+  The router must not be initialized until after the oauth flow is complete, because it
+  stores the initial history state at the time of its construction, and we don't want it
+  to capture that initial state until after we remove any OAuth response params from the URL.
+  */
+  const router = createRouter(makeOptions());
 
-login().then(() => {
-  new Vue({
-    provide: {
-      axios: axiosInstance,
-      oauthClient,
-    },
-    router,
-    vuetify,
-    render: (h) => h(App),
-  }).$mount('#app');
+  if (import.meta.env.VUE_APP_SENTRY_DSN && window.location.hostname !== 'localhost') {
+    Sentry.init({
+      app,
+      dsn: import.meta.env.VUE_APP_SENTRY_DSN as string,
+      release: __COMMIT_HASH__,
+    });
+  }
+
+  app.use(router);
+  app.use(Vuetify);
+  app.provide('oauthClient', oauthClient);
+  // Object.assign(axiosInstance.defaults.headers.common, oauthClient.authHeaders);
+  app.mount('#app');
 });

@@ -1,10 +1,10 @@
 <script lang="ts">
 import {
   computed, defineComponent, onMounted, ref,
-} from '@vue/composition-api';
+} from 'vue';
 
 import { axiosInstance } from '@/api';
-import { ChecksumFile } from '@/types';
+import type { ChecksumFile } from '@/types';
 import UploadDialog from '@/components/UploadDialog.vue';
 
 const fileListHeaders = [
@@ -99,7 +99,7 @@ export default defineComponent({
         v-model="uploadDialogOpen"
         width="60vw"
       >
-        <template v-slot:activator="{ on }">
+        <template #activator="{ on }">
           <v-btn
             color="primary"
             class="mx-1"
@@ -153,7 +153,7 @@ export default defineComponent({
           selectable-key="id"
           show-select
         >
-          <template v-slot:top>
+          <template #top>
             <v-text-field
               v-model="fileListSearch"
               label="Search Files"
@@ -163,7 +163,7 @@ export default defineComponent({
           </template>
 
           <!-- eslint-disable-next-line vue/valid-v-slot -->
-          <template v-slot:item.type="{ item }">
+          <template #item.type="{ item }">
             {{ item.type === 1 ? 'File' : 'Url' }}
           </template>
         </v-data-table>

@@ -1,15 +1,14 @@
 <script lang="ts">
-import 'cesium/Build/Cesium/Widgets/widgets.css';
 import {
   defineComponent,
   onMounted,
   PropType,
   ref,
-} from '@vue/composition-api';
+} from 'vue';
+import * as Cesium from 'cesium';
 import { cesiumViewer } from '@/store/cesium';
-import { Camera, Viewer } from 'cesium';
 import { imageryViewModels } from '@/utils/cesium';
-import { Polygon } from 'geojson';  // eslint-disable-line
+import type { Polygon } from 'geojson';
 
 export default defineComponent({
   name: 'CesiumViewer',
@@ -25,7 +24,7 @@ export default defineComponent({
 
     onMounted(async () => {
       // Initialize the viewer - this works without a token
-      cesiumViewer.value = new Viewer('cesiumContainer', {
+      cesiumViewer.value = new Cesium.Viewer('cesiumContainer', {
         // imageryProvider: false,
         imageryProviderViewModels: imageryViewModels,
         selectedImageryProviderViewModel: imageryViewModels[5], // Voyager
@@ -42,7 +41,7 @@ export default defineComponent({
       cesiumViewer.value.baseLayerPicker.viewModel.terrainProviderViewModels.removeAll();
 
       cesiumViewer.value.forceResize();
-      Camera.DEFAULT_VIEW_FACTOR = 0;
+      Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
     });
 
     return {

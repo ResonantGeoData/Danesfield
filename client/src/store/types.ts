@@ -14,7 +14,7 @@ export type RGDResult = {
   subentry_name: string;
   show_footprint: boolean;
   show_overlay: boolean;
-}
+};
 
 export type ImageryResult = {
   spatial_id: number;
@@ -42,7 +42,7 @@ export type ImageryResult = {
   resolution: number[];
   transform: number[];
   cloud_cover: number;
-}
+};
 
 export type TileParamsType = {
   index?: number;
@@ -51,4 +51,4 @@ export type TileParamsType = {
   name?: string;
   };
   opacity?: number;
-}
+};

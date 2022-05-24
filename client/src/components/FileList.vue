@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-simple-table v-if="!loading">
-      <template v-slot:default>
+      <template #default>
         <thead>
           <tr>
             <th class="text-left">
@@ -122,7 +122,7 @@
 <script lang="ts">
 import {
   defineComponent, ref, PropType, onMounted,
-} from '@vue/composition-api';
+} from 'vue';
 import { axiosInstance } from '@/api';
 import { addVisibleOverlay, visibleOverlayIds } from '@/store/cesium/layers';
 import { cesiumViewer } from '@/store/cesium';

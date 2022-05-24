@@ -16,15 +16,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from '@vue/composition-api';
-import DatasetList from '@/components/DatasetList.vue';
+import { defineComponent } from 'vue';
 import CesiumViewer from '@/components/CesiumViewer.vue';
 import DatasetPanel from '@/components/DatasetPanel.vue';
 
 export default defineComponent({
-  name: 'Focus',
+  name: 'FocusView',
   components: {
-    DatasetList, CesiumViewer, DatasetPanel,
+    CesiumViewer, DatasetPanel,
   },
   props: {
     datasetId: {

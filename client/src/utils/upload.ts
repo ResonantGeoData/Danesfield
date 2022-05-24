@@ -3,10 +3,10 @@ import S3FileFieldClient from 'django-s3-file-field';
 
 import { axiosInstance } from '@/api';
 import { ChecksumFile } from '@/types';
-import { computed } from '@vue/composition-api';
+import { computed } from 'vue';
 
 export const s3ffClient = computed(() => new S3FileFieldClient({
-  baseUrl: process.env.VUE_APP_S3FF_BASE_URL,
+  baseUrl: import.meta.env.VUE_APP_S3FF_BASE_URL as string,
   apiConfig: axiosInstance.defaults,
 }));
 

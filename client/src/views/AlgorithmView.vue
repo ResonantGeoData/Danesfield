@@ -1,7 +1,7 @@
 <script lang="ts">
 import {
   defineComponent, ref, onMounted, computed, watch, watchEffect,
-} from '@vue/composition-api';
+} from 'vue';
 import VJsoneditor from 'v-jsoneditor';
 import filesize from 'filesize';
 
@@ -49,11 +49,7 @@ function taskRunning(task: Task) {
 
 export default defineComponent({
   name: 'AlgorithmView',
-  components: {
-    VJsoneditor,
-    UploadDialog,
-    CreateDataset,
-  },
+  components: { CreateDataset },
   setup() {
     // /////////////////
     // Algorithm
@@ -283,7 +279,7 @@ export default defineComponent({
     <v-row no-gutters>
       <v-col>
         <v-dialog>
-          <template v-slot:activator="{ on }">
+          <template #activator="{ on }">
             <v-btn v-on="on">
               New Dataset
 
@@ -315,7 +311,7 @@ export default defineComponent({
                     v-model="runAlgorithmDialog"
                     width="50vw"
                   >
-                    <template v-slot:activator="{ on }">
+                    <template #activator="{ on }">
                       <v-btn
                         class="my-1"
                         v-on="on"
@@ -339,12 +335,12 @@ export default defineComponent({
                         @input="datasetToRunOn = $event[0] || null"
                       >
                         <!-- eslint-disable-next-line vue/valid-v-slot -->
-                        <template v-slot:item.files="{ item }">
+                        <template #item.files="{ item }">
                           {{ item.files.length }}
                         </template>
 
                         <!-- eslint-disable-next-line vue/valid-v-slot -->
-                        <template v-slot:item.size="{ item }">
+                        <template #item.size="{ item }">
                           {{ filesize(item.size) }}
                         </template>
                       </v-data-table>
@@ -416,11 +412,11 @@ export default defineComponent({
                 :loading="fetchingSelectedTaskInput"
               >
                 <!-- eslint-disable-next-line vue/valid-v-slot -->
-                <template v-slot:item.type="{ item }">
+                <template #item.type="{ item }">
                   {{ item.type === 1 ? 'File' : 'Url' }}
                 </template>
                 <!-- eslint-disable-next-line vue/valid-v-slot -->
-                <template v-slot:item.download_url="{ item }">
+                <template #item.download_url="{ item }">
                   <a
                     :href="item.download_url"
                     target="_blank"
@@ -485,11 +481,11 @@ export default defineComponent({
                   height="100%"
                 >
                   <!-- eslint-disable-next-line vue/valid-v-slot -->
-                  <template v-slot:item.type="{ item }">
+                  <template #item.type="{ item }">
                     {{ item.type === 1 ? 'File' : 'Url' }}
                   </template>
                   <!-- eslint-disable-next-line vue/valid-v-slot -->
-                  <template v-slot:item.download_url="{ item }">
+                  <template #item.download_url="{ item }">
                     <a
                       :href="item.download_url"
                       target="_blank"

@@ -18,7 +18,7 @@
 <script lang="ts">
 import {
   defineComponent, onMounted, onUnmounted, PropType, ref,
-} from '@vue/composition-api';
+} from 'vue';
 import * as Cesium from 'cesium';
 import { cesiumViewer } from '@/store/cesium';
 import { FMVMeta } from '@/types';

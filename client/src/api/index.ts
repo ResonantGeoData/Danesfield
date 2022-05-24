@@ -2,15 +2,15 @@ import axios from 'axios';
 import OauthClient from '@girder/oauth-client';
 import { GeoJSON, Polygon, MultiPolygon } from 'geojson'; // eslint-disable-line
 import { stringify } from 'qs';  // eslint-disable-line
-import { reactive } from '@vue/composition-api';
+import { reactive } from 'vue';
 
 export const axiosInstance = axios.create({
-  baseURL: `${process.env.VUE_APP_API_ROOT}api`,
+  baseURL: `${import.meta.env.VUE_APP_API_ROOT}api`,
   paramsSerializer: (params) => stringify(params, { arrayFormat: 'repeat' }),
 });
 export const oauthClient = reactive(new OauthClient(
-  process.env.VUE_APP_OAUTH_API_ROOT,
-  process.env.VUE_APP_OAUTH_CLIENT_ID,
+  import.meta.env.VUE_APP_OAUTH_API_ROOT as string,
+  import.meta.env.VUE_APP_OAUTH_CLIENT_ID as string,
 ));
 
 export async function restoreLogin() {

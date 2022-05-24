@@ -22,14 +22,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from '@vue/composition-api';
+import { defineComponent, ref } from 'vue';
 import { axiosInstance } from '@/api';
-import router from '@/router';
+import { useRouter } from 'vue-router';
 import { AxiosResponse } from 'axios';
 
 export default defineComponent({
   setup() {
     const datasets = ref([]);
+    const router = useRouter();
 
     axiosInstance.get('/datasets/')
       .then((resp: AxiosResponse) => {

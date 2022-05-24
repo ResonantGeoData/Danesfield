@@ -1,7 +1,7 @@
 <script lang="ts">
 import {
   defineComponent, onMounted, ref, watch, PropType,
-} from '@vue/composition-api';
+} from 'vue';
 
 import { axiosInstance } from '@/api';
 import { ChecksumFile } from '@/types';
@@ -82,7 +82,7 @@ export default defineComponent({
     show-select
     :single-select="single"
   >
-    <template v-slot:top>
+    <template #top>
       <v-text-field
         v-model="fileListSearch"
         label="Search Files"
@@ -92,7 +92,7 @@ export default defineComponent({
     </template>
 
     <!-- eslint-disable-next-line vue/valid-v-slot -->
-    <template v-slot:item.type="{ item }">
+    <template #item.type="{ item }">
       {{ item.type === 1 ? 'File' : 'Url' }}
     </template>
   </v-data-table>
