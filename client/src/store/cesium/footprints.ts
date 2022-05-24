@@ -1,5 +1,5 @@
-import { GeoJsonDataSource, HeadingPitchRange, Math } from 'cesium';
 import { ref, watch } from 'vue';
+import * as Cesium from 'cesium';
 import { cesiumViewer, addGeojson } from '@/store/cesium';
 import { GeoJSON } from 'geojson';  // eslint-disable-line
 
@@ -47,7 +47,7 @@ export const removeFootprint = (spatialId: number, type: 'imagery' | 'tiles3d' |
   }
 };
 
-const footprintSources: Record<string, GeoJsonDataSource> = {};
+const footprintSources: Record<string, Cesium.GeoJsonDataSource> = {};
 
 watch(visibleFootprints, (newFootprints, oldFootprints) => {
   Object.keys(oldFootprints).forEach(
@@ -66,10 +66,10 @@ watch(visibleFootprints, (newFootprints, oldFootprints) => {
       if (!Object.keys(oldFootprints).includes(key)) {
         // add footprint
         footprintSources[key] = await addGeojson(footprint, key);
-        cesiumViewer.value.flyTo(footprintSources[key], {
-          offset: new HeadingPitchRange(
-            Math.toRadians(0),
-            Math.toRadians(-90.0),
+        cesiumViewer.value.zoomTo(footprintSources[key], {
+          offset: new Cesium.HeadingPitchRange(
+            Cesium.Math.toRadians(0),
+            Cesium.Math.toRadians(-90.0),
           ),
         });
       }

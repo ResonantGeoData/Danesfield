@@ -1,19 +1,17 @@
 import { ref, watch } from 'vue';
-import {
-  Cartesian3, Color, PinBuilder, VerticalOrigin,
-} from 'cesium';
+import * as Cesium from 'cesium';
 
 import { cesiumViewer } from '@/store/cesium';
 
-const pinBuilder = new PinBuilder();
+const pinBuilder = new Cesium.PinBuilder();
 
-export const visiblePins = ref<Record<string, Cartesian3>>({});
+export const visiblePins = ref<Record<string, Cesium.Cartesian3>>({});
 
-export const addPin = async (position: Cartesian3, id: string) => {
+export const addPin = async (position: Cesium.Cartesian3, id: string) => {
   visiblePins.value = { ...visiblePins.value, [id]: position };
 };
 
-const pinSources: Record<string, Cartesian3> = {};
+const pinSources: Record<string, Cesium.Cartesian3> = {};
 
 watch(visiblePins, (newPins, oldPins) => {
   Object.keys(oldPins).forEach(
@@ -35,8 +33,8 @@ watch(visiblePins, (newPins, oldPins) => {
           name: key,
           position: coordinates,
           billboard: {
-            image: pinBuilder.fromColor(Color.ROYALBLUE, 48).toDataURL(),
-            verticalOrigin: VerticalOrigin.BOTTOM,
+            image: pinBuilder.fromColor(Cesium.Color.ROYALBLUE, 48).toDataURL(),
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           },
         });
         pinSources[key] = source;
