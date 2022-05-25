@@ -1,11 +1,10 @@
 <template>
   <video
     ref="videoElement"
-    width="100%"
-    height="240"
+    style="width: 100%; height: 240;"
     autobuffer
     autoplay
-    crossorigin
+    crossorigin="true"
     loop
   >
     <source
