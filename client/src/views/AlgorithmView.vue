@@ -2,7 +2,6 @@
 import {
   defineComponent, ref, onMounted, computed, watch, watchEffect,
 } from 'vue';
-import VJsoneditor from 'v-jsoneditor';
 import filesize from 'filesize';
 
 import { axiosInstance } from '@/api';
