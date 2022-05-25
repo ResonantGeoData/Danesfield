@@ -52,9 +52,6 @@ export default defineComponent({
         no-gutters
       >
         <v-app-bar-title>
-          <v-avatar tile>
-            <img src="../public/icon_large.png">
-          </v-avatar>
           Danesfield
         </v-app-bar-title>
       </v-row>
