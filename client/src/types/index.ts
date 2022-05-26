@@ -109,7 +109,7 @@ export interface FMV extends Model {
 
 export interface FMVMeta extends SpatialEntry {
   fmv_file: FMV;
-  frame_numbers: string;
+  frame_numbers: number[];
   flight_path: MultiPoint;
   ground_frames: MultiPolygon;
   ground_union: MultiPolygon;

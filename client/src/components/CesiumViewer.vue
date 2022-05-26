@@ -29,7 +29,7 @@ export default defineComponent({
         // imageryProvider: false,
         imageryProviderViewModels: imageryViewModels,
         selectedImageryProviderViewModel: imageryViewModels[5], // Voyager
-        animation: false,
+        animation: true,
         shouldAnimate: true,
         timeline: true,
         infoBox: false,
