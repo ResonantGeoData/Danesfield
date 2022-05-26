@@ -102,18 +102,23 @@ export default defineComponent({
       selectedTaskIndex.value !== null ? tasks.value[selectedTaskIndex.value] : null
     ));
 
-    function fetchTasks() {
+    async function fetchTasks() {
       // eslint-disable-next-line @typescript-eslint/camelcase
-      axiosInstance.get('tasks/', { params: { algorithm__pk: 1 } }).then((res) => {
-        tasks.value = res.data.results.sort(
-          (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
-        );
+      const res1 = await axiosInstance.get('tasks/', { params: { algorithm__pk: 1 } });
+      tasks.value = res1.data.results.sort(
+        (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
+      );
 
-        // Set default to most recent, if there are any
-        if (tasks.value.length && selectedTaskIndex.value === null) {
-          selectedTaskIndex.value = 0;
-        }
-      });
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      const res2 = await axiosInstance.get('tasks/', { params: { algorithm__pk: 2 } });
+      tasks.value = tasks.value.concat(res2.data.results.sort(
+        (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
+      ));
+
+      // Set default to most recent, if there are any
+      if (tasks.value.length && selectedTaskIndex.value === null) {
+        selectedTaskIndex.value = 0;
+      }
     }
 
     // Fetch tasks until all are completed
