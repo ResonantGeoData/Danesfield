@@ -1,12 +1,10 @@
 import axios from 'axios';
 import OauthClient from '@girder/oauth-client';
 import { GeoJSON, Polygon, MultiPolygon } from 'geojson'; // eslint-disable-line
-import { stringify } from 'qs';  // eslint-disable-line
 import { reactive } from '@vue/composition-api';
 
 export const axiosInstance = axios.create({
   baseURL: `${process.env.VUE_APP_API_ROOT}api`,
-  paramsSerializer: (params) => stringify(params, { arrayFormat: 'repeat' }),
 });
 export const oauthClient = reactive(new OauthClient(
   process.env.VUE_APP_OAUTH_API_ROOT,
@@ -19,14 +17,9 @@ export async function restoreLogin() {
   }
   await oauthClient.maybeRestoreLogin();
 }
-
-axiosInstance.interceptors.request.use((config) => ({
-  ...config,
-  headers: {
-    ...oauthClient?.authHeaders,
-    ...config.headers,
-  },
-}));
+oauthClient.maybeRestoreLogin().then(async () => {
+  Object.assign(axiosInstance.defaults.headers.common, oauthClient.authHeaders);
+});
 
 export async function rgdSearch(
   limit?: number,
