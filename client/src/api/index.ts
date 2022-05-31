@@ -1,6 +1,6 @@
 import axios from 'axios';
 import OauthClient from '@girder/oauth-client';
-import { GeoJSON, Polygon, MultiPolygon } from 'geojson'; // eslint-disable-line
+import type { GeoJSON, Polygon, MultiPolygon } from 'geojson'; // eslint-disable-line
 import { reactive } from '@vue/composition-api';
 
 export const axiosInstance = axios.create({

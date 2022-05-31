@@ -26,7 +26,7 @@ import * as Cesium from 'cesium';
 import { Cartesian3 } from 'cesium';
 import { addPin } from '@/store/cesium/pins';
 import { addGeojson, cesiumViewer } from '@/store/cesium';
-import { Polygon } from 'geojson';  // eslint-disable-line
+import type { Polygon } from 'geojson';  // eslint-disable-line
 
 export default defineComponent({
   name: 'Explore',

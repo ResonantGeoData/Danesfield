@@ -1,7 +1,7 @@
 import { GeoJsonDataSource, HeadingPitchRange, Math } from 'cesium';
 import { ref, watch } from '@vue/composition-api';
 import { cesiumViewer, addGeojson } from '@/store/cesium';
-import { GeoJSON } from 'geojson';  // eslint-disable-line
+import type { GeoJSON } from 'geojson';  // eslint-disable-line
 
 export const visibleFootprints = ref<Record<string, GeoJSON >>({});
 
