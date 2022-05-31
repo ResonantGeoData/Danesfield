@@ -21,12 +21,12 @@ import { axiosInstance } from '@/api';
 import DatasetList from '@/components/DatasetList.vue';
 import CesiumViewer from '@/components/CesiumViewer.vue';
 import DatasetPanel from '@/components/DatasetPanel.vue';
-import { centroid } from '@turf/turf';
+import centroid from '@turf/centroid';
 import * as Cesium from 'cesium';
 import { Cartesian3 } from 'cesium';
 import { addPin } from '@/store/cesium/pins';
 import { addGeojson, cesiumViewer } from '@/store/cesium';
-import { Polygon } from 'geojson';  // eslint-disable-line
+import type { Polygon } from 'geojson';  // eslint-disable-line
 
 export default defineComponent({
   name: 'Explore',

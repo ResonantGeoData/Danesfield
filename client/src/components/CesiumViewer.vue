@@ -9,7 +9,7 @@ import {
 import { cesiumViewer } from '@/store/cesium';
 import { Camera, Viewer } from 'cesium';
 import { imageryViewModels } from '@/utils/cesium';
-import { Polygon } from 'geojson';  // eslint-disable-line
+import type { Polygon } from 'geojson';  // eslint-disable-line
 
 export default defineComponent({
   name: 'CesiumViewer',
