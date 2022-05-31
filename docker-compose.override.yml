@@ -16,3 +16,21 @@ services:
       - postgres
       - rabbitmq
       - minio
+
+  web:
+    build:
+      context: .
+      dockerfile: ./dev/web.Dockerfile
+    command: ["yarn", "run", "serve"]
+    # Log printing via Rich is enhanced by a TTY
+    tty: true
+    env_file: ./client/.env
+    volumes:
+      - ./client:/opt/vue-project
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+      - rabbitmq
+      - minio
+      - django

@@ -50,7 +50,11 @@ but allows developers to run Python code on their native system.
 3. Run in a separate terminal:
    1. `source ./dev/export-env.sh`
    2. `celery --app danesfield.celery worker --loglevel INFO --heartbeat-interval 60`
-4. When finished, run `docker-compose stop`
+4. Run in a seperate terminal:
+   1. `cd client/`
+   2. `yarn`
+   3. `yarn run serve`
+5. When finished, run `docker-compose stop`
 
 ## Remap Service Ports (optional)
 Attached services may be exposed to the host system via alternative ports. Developers who work
