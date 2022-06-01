@@ -25,11 +25,19 @@ class DatasetViewSet(BaseDatasetViewSet):
             query_serializer.is_valid(raise_exception=True)
 
             include_input_datasets: bool = query_serializer.validated_data['include_input_datasets']
+            include_output_datasets: bool = query_serializer.validated_data[
+                'include_output_datasets'
+            ]
 
             if not include_input_datasets:
                 qs = qs.annotate(
                     is_input=Exists(AlgorithmTask.objects.filter(input_dataset=OuterRef('pk')))
                 ).filter(is_input=False)
+
+            if not include_output_datasets:
+                qs = qs.annotate(
+                    is_output=Exists(AlgorithmTask.objects.filter(output_dataset=OuterRef('pk')))
+                ).filter(is_output=False)
 
         return qs
 
