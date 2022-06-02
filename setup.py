@@ -56,7 +56,7 @@ setup(
         'django-s3-file-field[boto3]',
         'gunicorn',
         # Install with git
-        'RD-OASIS @ git+https://github.com/ResonantGeoData/RD-OASIS@5b536ab3a9aa67a89c494a18beb3ce105c21779c',  # noqa
+        'RD-OASIS @ git+https://github.com/ResonantGeoData/RD-OASIS@a90f8e969f828932a4ae207693a3c9a09aef34a8',  # noqa
     ],
     dependency_links=['https://girder.github.io/large_image_wheels'],
     extras_require={
