@@ -9,6 +9,7 @@ import zipfile
 
 import celery
 from celery.utils.log import get_task_logger
+from django.db.models.signals import post_save
 from rdoasis.algorithms.models import AlgorithmTask, Dataset
 from rdoasis.algorithms.tasks.common import ManagedTask
 from rdoasis.algorithms.tasks.docker import _run_algorithm_task_docker
@@ -62,15 +63,23 @@ def _ingest_checksum_files(dataset: Dataset):
     if images:
         images = Image.objects.bulk_create(images)
         for image in images:
+            # bulk_create doesn't send this signal, so we must do it manually
+            post_save.send(Image, instance=image, created=True)
             image_set = ImageSet.objects.create(name=image.file.name)
             image_set.images.set([image])
             Raster.objects.create(name=image.file.name, image_set=image_set)
 
     if meshes:
         Mesh3D.objects.bulk_create(meshes)
+        for mesh in meshes:
+            # bulk_create doesn't send this signal, so we must do it manually
+            post_save.send(Mesh3D, instance=mesh, created=True)
 
     if fmvs:
         FMV.objects.bulk_create(fmvs)
+        for fmv in fmvs:
+            # bulk_create doesn't send this signal, so we must do it manually
+            post_save.send(FMV, instance=fmv, created=True)
         run_telesculptor(dataset.pk)
 
 
