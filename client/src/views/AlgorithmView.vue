@@ -71,7 +71,8 @@ export default defineComponent({
       fetchingDatasetList.value = true;
 
       try {
-        const res = await axiosInstance.get('datasets/');
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        const res = await axiosInstance.get('datasets/', { params: { include_output_datasets: false } });
         datasetList.value = res.data.results;
       } catch (error) {
         // TODO: Handle

@@ -1,9 +1,10 @@
 import json
 
 from django.contrib.gis.geos import MultiPoint, Point
+from django.db.models import Exists, OuterRef
 from django.http import JsonResponse
 from django.shortcuts import redirect
-from rdoasis.algorithms.models import Dataset
+from rdoasis.algorithms.models import AlgorithmTask, Dataset
 from rdoasis.algorithms.views.algorithms import DatasetViewSet as BaseDatasetViewSet
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -13,8 +14,33 @@ from rgd_3d.models import Mesh3D, Mesh3DSpatial, Tiles3DMeta
 from rgd_fmv.models import FMVMeta
 from rgd_imagery.models import RasterMeta
 
+from danesfield.core.views.serializers import DatasetListQueryParamsSerializer
+
 
 class DatasetViewSet(BaseDatasetViewSet):
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.action == 'list':
+            query_serializer = DatasetListQueryParamsSerializer(data=self.request.query_params)
+            query_serializer.is_valid(raise_exception=True)
+
+            include_input_datasets: bool = query_serializer.validated_data['include_input_datasets']
+            include_output_datasets: bool = query_serializer.validated_data[
+                'include_output_datasets'
+            ]
+
+            if not include_input_datasets:
+                qs = qs.annotate(
+                    is_input=Exists(AlgorithmTask.objects.filter(input_dataset=OuterRef('pk')))
+                ).filter(is_input=False)
+
+            if not include_output_datasets:
+                qs = qs.annotate(
+                    is_output=Exists(AlgorithmTask.objects.filter(output_dataset=OuterRef('pk')))
+                ).filter(is_output=False)
+
+        return qs
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)

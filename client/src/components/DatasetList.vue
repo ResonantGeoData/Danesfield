@@ -31,7 +31,8 @@ export default defineComponent({
   setup() {
     const datasets = ref([]);
 
-    axiosInstance.get('/datasets/')
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    axiosInstance.get('/datasets/', { params: { include_input_datasets: false } })
       .then((resp: AxiosResponse) => {
         datasets.value = resp.data.results;
       });
