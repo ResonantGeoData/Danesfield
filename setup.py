@@ -44,10 +44,10 @@ setup(
         'django-extensions',
         'django-filter',
         'django-oauth-toolkit',
-        'django-rgd @ git+https://github.com/ResonantGeoData/ResonantGeoData@main#subdirectory=django-rgd',  # noqa
-        'django-rgd-3d @ git+https://github.com/ResonantGeoData/ResonantGeoData@main#subdirectory=django-rgd-3d',  # noqa
-        'django-rgd-fmv @ git+https://github.com/ResonantGeoData/ResonantGeoData@main#subdirectory=django-rgd-fmv',  # noqa
-        'django-rgd-imagery @ git+https://github.com/ResonantGeoData/ResonantGeoData@main#subdirectory=django-rgd-imagery',  # noqa
+        'django-rgd==0.3.9',
+        'django-rgd-3d==0.3.9',
+        'django-rgd-fmv==0.3.9',
+        'django-rgd-imagery==0.3.9',
         'djangorestframework',
         'drf-extensions',
         'drf-yasg',
