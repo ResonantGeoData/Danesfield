@@ -48,16 +48,16 @@ def _ingest_checksum_files(dataset: Dataset):
         # 3D tiles is a special case - save all associated files into the
         # database all at once
         elif checksum_file.name.endswith('tileset.json'):
-            # Create a fileset for this 3D tiles dataset
-            tiles_3d_fileset = FileSet.objects.create(name=dataset.name)
-
             # Get the base directory of the 3D tiles dataset
             tiles_3d_base_dir = Path(checksum_file.name).parent
+
+            # Create a fileset for this 3D tiles dataset
+            tiles_3d_fileset = FileSet.objects.create(name=tiles_3d_base_dir)
 
             tiles_3d_fileset.checksumfile_set.set(
                 dataset.files.filter(name__startswith=tiles_3d_base_dir)
             )
-            Tiles3D.objects.create(name=dataset.name, json_file=checksum_file)
+            Tiles3D.objects.create(name=tiles_3d_base_dir, json_file=checksum_file)
 
     if images:
         images = Image.objects.bulk_create(images)
