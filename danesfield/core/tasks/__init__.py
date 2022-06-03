@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import shutil
 import tempfile
-from typing import List, Union
+from typing import Union
 import zipfile
 
 import celery
@@ -30,9 +30,9 @@ RGD_3D_EXTENSIONS = ('.ply', '.obj')
 
 
 def _ingest_checksum_files(dataset: Dataset):
-    images: List[Image] = []
-    meshes: List[Mesh3D] = []
-    fmvs: List[FMV] = []
+    images: list[Image] = []
+    meshes: list[Mesh3D] = []
+    fmvs: list[FMV] = []
     for checksum_file in dataset.files.all():
         extension: str = Path(checksum_file.name).suffix
 
