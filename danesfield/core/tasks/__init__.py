@@ -167,12 +167,12 @@ class KWIVERTask(ManagedTask):
         run_danesfield(self.algorithm_task.output_dataset.pk)
 
 
-@celery.shared_task(base=DanesfieldTask, bind=True)
+@celery.shared_task(base=DanesfieldTask, bind=True, queue='danesfield')
 def run_danesfield_task(self: DanesfieldTask, *args, **kwargs):
     _run_algorithm_task_docker(self, *args, **kwargs)
 
 
-@celery.shared_task(base=KWIVERTask, bind=True)
+@celery.shared_task(base=KWIVERTask, bind=True, queue='kwiver')
 def run_kwiver_task(self: KWIVERTask, *args, **kwargs):
     _run_algorithm_task_docker(self, *args, **kwargs)
 
