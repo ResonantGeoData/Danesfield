@@ -10,11 +10,11 @@ echo "$fmv_file"
 echo "track-features"
 kwiver track-features "$fmv_file"
 echo "init-cameras-landmarks"
-kwiver init-cameras-landmarks -v "$fmv_file" -t results/tracks.txt
+kwiver init-cameras-landmarks --video "$fmv_file" --tracks results/tracks.txt
 echo "estimate-depth"
-kwiver estimate-depth "$fmv_file"
+kwiver estimate-depth --input-landmarks-file results/landmarks.ply "$fmv_file" results/krtd results/depth
 echo "fuse-depth"
-kwiver fuse-depth results/krtd results/depth --input-geo-origin-file results/geo_origin.txt --output-mesh-file results/mesh.vtp
+kwiver fuse-depth --input-geo-origin-file results/geo_origin.txt --output-mesh-file results/mesh.vtp results/krtd results/depth
 echo "color-mesh"
 kwiver color-mesh --config input/color-mesh.conf --input-geo-origin-file results/geo_origin.txt results/mesh.vtp "$fmv_file" results/krtd results/pc.las
 
