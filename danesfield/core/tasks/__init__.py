@@ -155,7 +155,12 @@ class KWIVERTask(ManagedTask):
     def __call__(self, **kwargs):
         self._setup(**kwargs)
         shutil.copy(
-            str(Path(__file__).parent.parent.parent.parent / 'telesculptor.sh'), self.input_dir
+            str(Path(__file__).parent.parent.parent.parent / 'telesculptor' / 'telesculptor.sh'),
+            self.input_dir,
+        )
+        shutil.copy(
+            str(Path(__file__).parent.parent.parent.parent / 'telesculptor' / 'color-mesh.conf'),
+            self.input_dir,
         )
         with yield_checksumfiles(self.algorithm_task.input_dataset.files.all(), self.input_dir):
             return self.run(**kwargs)
