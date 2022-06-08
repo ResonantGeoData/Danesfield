@@ -70,6 +70,8 @@ setup(
         ],
         'worker': [
             'docker',
+            'laspy',
+            'pyntcloud',
         ],
     },
 )
