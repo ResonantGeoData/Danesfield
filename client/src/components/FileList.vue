@@ -234,7 +234,7 @@ export default defineComponent({
         // If the footprint is already visible, make it invisible
         removeFootprint(fmvId, 'fmv');
       } else {
-        addFootprint(fmvId, fmvs.value[fmvId].footprint, 'fmv');
+        addFootprint(fmvId, fmvs.value[fmvId].ground_union, 'fmv');
       }
 
       loading.value = false;
