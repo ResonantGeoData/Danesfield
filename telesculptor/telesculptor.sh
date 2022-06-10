@@ -2,6 +2,12 @@
 
 shopt -s extglob
 
+source /kwiver/build/setup_KWIVER.sh
+# Set up X virtual framebuffer (Xvfb) to support running VTK headless.
+# The color-mesh KWIVER applet needs this to work.
+Xvfb :1 -screen 0 1024x768x16 -nolisten tcp &
+export DISPLAY=:1.0
+
 # Assume the only other file in this directory besides this shell
 # script and color-mesh.conf is the FMV file we want to run the pipeline on
 fmv_file=$(find . -type f ! -name "*.sh" ! -name "*.conf")
