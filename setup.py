@@ -65,10 +65,12 @@ setup(
             'django-debug-toolbar',
             'django-s3-file-field[minio]',
             'ipython',
-            'rasterio',
             'tox',
         ],
         'worker': [
+            'django-rgd-3d[worker]',
+            'django-rgd-fmv[worker]',
+            'django-rgd-imagery[worker]',
             'docker',
         ],
     },
