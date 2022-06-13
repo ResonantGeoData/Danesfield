@@ -159,7 +159,7 @@ export default defineComponent({
   },
   setup(props) {
     const rasters = ref<RasterMeta[]>([]);
-    const tiles3d = ref<Tiles3DMeta[]>([]);
+    const tiles3d = ref<Record<number, Tiles3DMeta>>({});
     const fmvs = ref<Record<number, FMVMeta>>({});
 
     const fmvBeingViewed = ref<FMVMeta | null>(null);
@@ -179,7 +179,7 @@ export default defineComponent({
     }
 
     function tiles3dIsVisible(tiles3dId: number) {
-      const current = tiles3d.value.filter((tile) => tile.spatial_id === tiles3dId)[0];
+      const current = tiles3d.value[tiles3dId];
       const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
       const { scene } = cesiumViewer.value;
       const { primitives } = scene;
@@ -193,7 +193,7 @@ export default defineComponent({
     }
 
     function setTiles3dVisibility(tiles3dId: number) {
-      const current = tiles3d.value.filter((tile) => tile.spatial_id === tiles3dId)[0];
+      const current = tiles3d.value[tiles3dId];
       const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
       const { scene } = cesiumViewer.value;
       const { primitives } = scene;
@@ -299,7 +299,7 @@ export default defineComponent({
 
       await Promise.all(props.tiles3dIds.map(async (id) => {
         const { data } = await axiosInstance.get(`/rgd_3d/tiles3d/${id}`);
-        tiles3d.value.push(data);
+        tiles3d.value[data.spatial_id] = data;
       }));
 
       await Promise.all(props.fmvIds.map(async (id) => {
@@ -307,8 +307,8 @@ export default defineComponent({
         fmvs.value[data.spatial_id] = data;
       }));
 
-      if (tiles3d.value.length > 0) {
-        setTiles3dVisibility(tiles3d.value[0].spatial_id);
+      if (Object.keys(tiles3d.value).length > 0) {
+        setTiles3dVisibility(Object.values(tiles3d.value)[0].spatial_id);
       } else if (rasters.value.length > 0) {
         setRasterVisibility(rasters.value[0].spatial_id);
       }
