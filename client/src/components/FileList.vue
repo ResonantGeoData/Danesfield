@@ -158,7 +158,7 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const rasters = ref<RasterMeta[]>([]);
+    const rasters = ref<Record<number, RasterMeta>>({});
     const tiles3d = ref<Record<number, Tiles3DMeta>>({});
     const fmvs = ref<Record<number, FMVMeta>>({});
 
@@ -294,7 +294,7 @@ export default defineComponent({
     onMounted(async () => {
       await Promise.all(props.rasterIds.map(async (id) => {
         const { data } = await axiosInstance.get(`/rgd_imagery/raster/${id}`);
-        rasters.value.push(data);
+        rasters.value[data.spatial_id] = data;
       }));
 
       await Promise.all(props.tiles3dIds.map(async (id) => {
@@ -309,8 +309,8 @@ export default defineComponent({
 
       if (Object.keys(tiles3d.value).length > 0) {
         setTiles3dVisibility(Object.values(tiles3d.value)[0].spatial_id);
-      } else if (rasters.value.length > 0) {
-        setRasterVisibility(rasters.value[0].spatial_id);
+      } else if (Object.keys(rasters.value).length > 0) {
+        setRasterVisibility(Object.values(rasters.value)[0].spatial_id);
       }
 
       loading.value = false;
