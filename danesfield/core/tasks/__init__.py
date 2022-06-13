@@ -117,8 +117,8 @@ class DanesfieldTask(ManagedTask):
 
     def _write_config_file(self):
         """Create and write the config file."""
-        # Assume that input dataset is only one file, and that file is the point cloud file
-        point_cloud_path = self.input_dataset_paths[0]
+        # Get point cloud file from input dataset
+        point_cloud_path = [path for path in self.input_dataset_paths if path.suffix == '.las'][0]
 
         # Construct config
         config = configparser.ConfigParser()
