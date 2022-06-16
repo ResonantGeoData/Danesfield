@@ -25,6 +25,21 @@
             <td>
               <v-btn
                 icon
+                @click="setTiles3dFootprintVisibility(tileset.spatial_id)"
+              >
+                <v-progress-circular
+                  v-if="loading"
+                  indeterminate
+                />
+                <v-icon
+                  v-else
+                  :color="tiles3dFootprintIsVisible(tileset.spatial_id) ? 'success' : ''"
+                >
+                  mdi-foot-print
+                </v-icon>
+              </v-btn>
+              <v-btn
+                icon
                 @click="setTiles3dVisibility(tileset.spatial_id)"
               >
                 <v-icon :color="tiles3dIsVisible(tileset.spatial_id) ? 'success' : ''">
@@ -192,6 +207,18 @@ export default defineComponent({
       return false;
     }
 
+    function tiles3dFootprintIsVisible(tiles3dId: number) {
+      return Object.keys(visibleFootprints.value).includes(`tiles3d_${tiles3dId}`);
+    }
+
+    function setTiles3dFootprintVisibility(tiles3dId: number) {
+      if (tiles3dFootprintIsVisible(tiles3dId)) {
+        removeFootprint(tiles3dId, 'tiles3d');
+      } else {
+        addFootprint(tiles3dId, tiles3d.value[tiles3dId].footprint, 'tiles3d');
+      }
+    }
+
     function setTiles3dVisibility(tiles3dId: number) {
       const current = tiles3d.value[tiles3dId];
       const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
@@ -213,7 +240,6 @@ export default defineComponent({
         url: tilesetURL,
       });
       cesiumViewer.value.scene.primitives.add(tileset);
-      addFootprint(current.spatial_id, current.footprint, 'tiles3d');
     }
 
     function setVideoSrc(fmvId: number) {
@@ -309,6 +335,7 @@ export default defineComponent({
 
       if (Object.keys(tiles3d.value).length > 0) {
         setTiles3dVisibility(Object.values(tiles3d.value)[0].spatial_id);
+        setTiles3dFootprintVisibility(Object.values(tiles3d.value)[0].spatial_id);
       } else if (Object.keys(rasters.value).length > 0) {
         setRasterVisibility(Object.values(rasters.value)[0].spatial_id);
       }
@@ -331,6 +358,8 @@ export default defineComponent({
       fmvFlightPathIsVisible,
       tiles3dIsVisible,
       rasterIsVisible,
+      tiles3dFootprintIsVisible,
+      setTiles3dFootprintVisibility,
     };
   },
 });
