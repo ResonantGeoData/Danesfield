@@ -1,21 +1,19 @@
 from __future__ import annotations
 
-from datetime import timedelta
 from pathlib import Path
 
 from composed_configuration import (
     ComposedConfiguration,
-    ConfigMixin,
     DevelopmentBaseConfiguration,
     HerokuProductionBaseConfiguration,
     ProductionBaseConfiguration,
     TestingBaseConfiguration,
 )
 from configurations import values
-from rgd.configuration import GeoDjangoMixin
+from rgd.configuration import ResonantGeoDataBaseMixin
 
 
-class DanesfieldMixin(GeoDjangoMixin, ConfigMixin):
+class DanesfieldMixin(ResonantGeoDataBaseMixin):
     WSGI_APPLICATION = 'danesfield.wsgi.application'
     ROOT_URLCONF = 'danesfield.urls'
 
@@ -39,10 +37,6 @@ class DanesfieldMixin(GeoDjangoMixin, ConfigMixin):
             engine='django.contrib.gis.db.backends.postgis',
             conn_max_age=600,
         )
-
-    CELERY_TASK_TIME_LIMIT = values.IntegerValue(
-        environ=True, default=timedelta(days=1).total_seconds()
-    )
 
 
 class DevelopmentConfiguration(DanesfieldMixin, DevelopmentBaseConfiguration):
