@@ -16,7 +16,7 @@ echo "$fmv_file"
 echo "track-features"
 kwiver track-features "$fmv_file"
 echo "init-cameras-landmarks"
-kwiver init-cameras-landmarks --video "$fmv_file" --tracks results/tracks.txt
+kwiver init-cameras-landmarks --video "$fmv_file" --tracks results/tracks.txt --camera results/krtd --landmarks results/landmarks.ply
 echo "estimate-depth"
 kwiver estimate-depth --input-landmarks-file results/landmarks.ply "$fmv_file" results/krtd results/depth
 echo "fuse-depth"
