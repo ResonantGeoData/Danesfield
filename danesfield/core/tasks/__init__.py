@@ -1,6 +1,7 @@
 import configparser
 from distutils.dir_util import copy_tree
 import json
+from mimetypes import guess_type
 from pathlib import Path
 import shutil
 import tempfile
@@ -14,7 +15,7 @@ from rdoasis.algorithms.models import AlgorithmTask, Dataset
 from rdoasis.algorithms.tasks.common import ManagedTask
 from rdoasis.algorithms.tasks.docker import _run_algorithm_task_docker
 import requests
-from rgd.models import FileSet
+from rgd.models import ChecksumFile, FileSet
 from rgd.models.utils import yield_checksumfiles
 from rgd_3d.models import Mesh3D, Tiles3D
 from rgd_fmv.models import FMV
@@ -33,17 +34,22 @@ def _ingest_checksum_files(dataset: Dataset):
     images: List[Image] = []
     meshes: List[Mesh3D] = []
     fmvs: List[FMV] = []
+
+    checksum_file: ChecksumFile
     for checksum_file in dataset.files.all():
         extension: str = Path(checksum_file.name).suffix
 
         if not extension:
             continue
 
-        if extension in RGD_IMAGERY_EXTENSIONS:
+        # Try to guess the filetype based on
+        file_type = guess_type(checksum_file.name)[0] or ''
+
+        if file_type.startswith('image') or extension in RGD_IMAGERY_EXTENSIONS:
             images.append(Image(file=checksum_file))
         elif extension in RGD_3D_EXTENSIONS:
             meshes.append(Mesh3D(file=checksum_file))
-        elif extension in RGD_FMV_EXTENSIONS:
+        elif file_type.startswith('video') or extension in RGD_FMV_EXTENSIONS:
             fmvs.append(FMV(file=checksum_file))
 
         # 3D tiles is a special case - save all associated files into the
