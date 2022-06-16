@@ -23,7 +23,7 @@ export default defineComponent({
     const properties = ref();
     const dialog = ref(false);
 
-    onMounted(async () => {
+    onMounted(() => {
       // Initialize the viewer - this works without a token
       cesiumViewer.value = new Viewer('cesiumContainer', {
         // imageryProvider: false,
