@@ -7,10 +7,11 @@ from rdoasis.algorithms.models import Dataset
 from rgd.models import ChecksumFile
 
 
-@click.command(help="Clone a Dataset's files to the given path on disk.")
-@click.argument('dataset_pk', required=True, type=int, help='Primary key of the Dataset to clone.')
+@click.command()
+@click.argument('dataset_pk', required=True, type=int)
 @click.option('-p', '--path', type=str, help='Directory to save files to.')
 def clone_dataset(dataset_pk: int, path: str | None):
+    """Clone a Dataset's files to the given path on disk."""
     path = (
         Path(__file__).parent.parent.parent.parent.parent.resolve()
         if path is None
