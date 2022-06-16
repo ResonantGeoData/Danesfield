@@ -2,11 +2,8 @@ import { Color, GeoJsonDataSource, RequestScheduler } from 'cesium';
 import { ref } from '@vue/composition-api';
 import type { GeoJSON } from 'geojson';  // eslint-disable-line
 
-// Limit the tile requests on RGD server so that Vue app's requests aren't hung
-// Cesium.RequestScheduler.requestsByServer = {
-//   host: 3,
-// };
-RequestScheduler.maximumRequestsPerServer = 3;
+// Don't limit the amount of requests Cesium can make at once
+RequestScheduler.throttleRequests = false;
 
 export const cesiumViewer = ref();
 
