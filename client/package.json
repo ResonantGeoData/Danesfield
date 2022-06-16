@@ -14,7 +14,7 @@
     "@turf/centroid": "^6.5.0",
     "@vue/composition-api": "^1.0.0-rc.2",
     "axios": "^0.21.1",
-    "cesium": "^1.91.0",
+    "cesium": "^1.94.3",
     "django-s3-file-field": "^0.2.0",
     "filesize": "^8.0.6",
     "v-jsoneditor": "^1.4.5",
