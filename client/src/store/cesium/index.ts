@@ -21,7 +21,6 @@ const HUERISTIC_STATUS_DATA = {
 /* eslint-enable @typescript-eslint/camelcase */
 
 export const addGeojson = async (geojson: GeoJSON, key: string): Promise<GeoJsonDataSource> => {
-  // cesiumViewer.value.dataSources.remove(source);
   const dataSource = await GeoJsonDataSource.load(geojson);
   dataSource.name = key; // save name that can be used to retrieve this later
   const source = await cesiumViewer.value.dataSources.add(dataSource);
