@@ -199,9 +199,10 @@ export default defineComponent({
       const { scene } = cesiumViewer.value;
       const { primitives } = scene;
       for (let i = 0; i < primitives.length; i += 1) {
+        const primitive = primitives.get(i);
         // eslint-disable-next-line no-underscore-dangle
-        if (primitives.get(i)._url === tilesetURL) {
-          return true;
+        if (primitive._url === tilesetURL) {
+          return primitive.show;
         }
       }
       return false;
@@ -225,17 +226,17 @@ export default defineComponent({
       const { scene } = cesiumViewer.value;
       const { primitives } = scene;
 
-      // Check if this tileset is already displayed. If it is, remove it and return.
+      // Check if this tileset is already downloaded. If it is, show/hide it and return.
       for (let i = 0; i < primitives.length; i += 1) {
         const currentTileset = primitives.get(i);
         // eslint-disable-next-line no-underscore-dangle
         if (currentTileset._url === tilesetURL) {
-          cesiumViewer.value.scene.primitives.remove(currentTileset);
+          currentTileset.show = !currentTileset.show;
           return;
         }
       }
 
-      // Otherwise, display it.
+      // Otherwise, download it and show it.
       const tileset = new Cesium.Cesium3DTileset({
         url: tilesetURL,
       });
