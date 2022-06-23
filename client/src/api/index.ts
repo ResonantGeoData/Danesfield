@@ -88,7 +88,7 @@ export async function rgdImagery(
 export async function rgdImageTilesMeta(
   imageId: number,
 ) {
-  const response = await axiosInstance.get(`/rgd_imagery/tiles/${imageId}/metadata`);
+  const response = await axiosInstance.get(`/rgd_imagery/tiles/${imageId}/info/metadata`);
   return response.data;
 }
 
