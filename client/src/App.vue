@@ -18,7 +18,7 @@ export default defineComponent({
     };
 
     // Link for girder tab
-    const apiLink = `${axiosInstance.defaults.baseURL}docs/swagger`;
+    const apiLink = `${axiosInstance.defaults.baseURL}/docs/swagger`;
     const tab = computed(() => router.currentRoute.path);
 
     // onTabChange is only called when the api link is clicked.
@@ -78,7 +78,7 @@ export default defineComponent({
           target="_blank"
           rel="noopener noreferrer"
         >
-          Girder
+          API Docs
           <v-icon>mdi-open-in-new</v-icon>
         </v-tab>
       </v-tabs>
