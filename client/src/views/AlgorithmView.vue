@@ -58,9 +58,6 @@ export default defineComponent({
     // /////////////////
     // Algorithm
     // /////////////////
-    const algorithm = ref<Algorithm>();
-    const showAlgorithmDetails = ref(false);
-    const fetchingAlgorithm = ref(false);
     const runAlgorithmDialog = ref(false);
 
     // Datasets for running algorithm
@@ -81,19 +78,6 @@ export default defineComponent({
       fetchingDatasetList.value = false;
     }
 
-    async function fetchAlgorithm() {
-      fetchingAlgorithm.value = true;
-
-      try {
-        const res = await axiosInstance.get('danesfield/algorithm/');
-        algorithm.value = res.data;
-      } catch (error) {
-        // TODO: Handle
-      }
-
-      fetchingAlgorithm.value = false;
-    }
-
     // /////////////////
     // Tasks
     // /////////////////
@@ -106,13 +90,12 @@ export default defineComponent({
     async function fetchTasks() {
       // eslint-disable-next-line @typescript-eslint/camelcase
       const res1 = await axiosInstance.get('tasks/', { params: { algorithm__pk: 1 } });
-      tasks.value = res1.data.results.sort(
-        (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
-      );
-
       // eslint-disable-next-line @typescript-eslint/camelcase
       const res2 = await axiosInstance.get('tasks/', { params: { algorithm__pk: 2 } });
-      tasks.value = tasks.value.concat(res2.data.results.sort(
+
+      tasks.value = res1.data.results.sort(
+        (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
+      ).concat(res2.data.results.sort(
         (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
       ));
 
@@ -241,7 +224,6 @@ export default defineComponent({
     }
 
     onMounted(() => {
-      fetchAlgorithm();
       fetchTasks();
       fetchDatasetList();
     });
@@ -255,11 +237,7 @@ export default defineComponent({
       datasetList,
       datasetToRunOn,
 
-      algorithm,
       runAlgorithmDialog,
-      showAlgorithmDetails,
-      fetchingAlgorithm,
-      fetchAlgorithm,
 
       tasks,
       selectedTask,
