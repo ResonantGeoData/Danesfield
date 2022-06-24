@@ -2,7 +2,6 @@
 import {
   defineComponent, ref, onMounted, computed, watch, watchEffect,
 } from '@vue/composition-api';
-import VJsoneditor from 'v-jsoneditor';
 import filesize from 'filesize';
 
 import { axiosInstance } from '@/api';
@@ -50,7 +49,6 @@ function taskRunning(task: Task) {
 export default defineComponent({
   name: 'AlgorithmView',
   components: {
-    VJsoneditor,
     UploadDialog,
     CreateDataset,
   },
