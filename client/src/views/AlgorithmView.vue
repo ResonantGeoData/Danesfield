@@ -274,7 +274,7 @@ export default defineComponent({
               </v-icon>
             </v-btn>
           </template>
-          <create-dataset />
+          <create-dataset @created="fetchDatasetList" />
         </v-dialog>
       </v-col>
     </v-row>
