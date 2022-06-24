@@ -62,6 +62,7 @@ export default defineComponent({
     const datasetList = ref<Dataset[]>([]);
     const fetchingDatasetList = ref(false);
     const datasetToRunOn = ref<Dataset | null>(null);
+    const datasetDialogVisible = ref(false);
     async function fetchDatasetList() {
       fetchingDatasetList.value = true;
 
@@ -74,6 +75,10 @@ export default defineComponent({
       }
 
       fetchingDatasetList.value = false;
+    }
+    function datasetCreated() {
+      fetchDatasetList();
+      datasetDialogVisible.value = false;
     }
 
     // /////////////////
@@ -234,6 +239,8 @@ export default defineComponent({
       fetchingDatasetList,
       datasetList,
       datasetToRunOn,
+      datasetDialogVisible,
+      datasetCreated,
 
       runAlgorithmDialog,
 
@@ -264,7 +271,7 @@ export default defineComponent({
   >
     <v-row no-gutters>
       <v-col>
-        <v-dialog>
+        <v-dialog v-model="datasetDialogVisible">
           <template v-slot:activator="{ on }">
             <v-btn v-on="on">
               New Dataset
@@ -274,7 +281,7 @@ export default defineComponent({
               </v-icon>
             </v-btn>
           </template>
-          <create-dataset @created="fetchDatasetList" />
+          <create-dataset @created="datasetCreated" />
         </v-dialog>
       </v-col>
     </v-row>
