@@ -2,7 +2,6 @@
 import {
   defineComponent, ref, onMounted, computed, watch, watchEffect,
 } from '@vue/composition-api';
-import VJsoneditor from 'v-jsoneditor';
 import filesize from 'filesize';
 
 import { axiosInstance } from '@/api';
@@ -50,7 +49,6 @@ function taskRunning(task: Task) {
 export default defineComponent({
   name: 'AlgorithmView',
   components: {
-    VJsoneditor,
     UploadDialog,
     CreateDataset,
   },
@@ -58,15 +56,13 @@ export default defineComponent({
     // /////////////////
     // Algorithm
     // /////////////////
-    const algorithm = ref<Algorithm>();
-    const showAlgorithmDetails = ref(false);
-    const fetchingAlgorithm = ref(false);
     const runAlgorithmDialog = ref(false);
 
     // Datasets for running algorithm
     const datasetList = ref<Dataset[]>([]);
     const fetchingDatasetList = ref(false);
     const datasetToRunOn = ref<Dataset | null>(null);
+    const datasetDialogVisible = ref(false);
     async function fetchDatasetList() {
       fetchingDatasetList.value = true;
 
@@ -80,18 +76,9 @@ export default defineComponent({
 
       fetchingDatasetList.value = false;
     }
-
-    async function fetchAlgorithm() {
-      fetchingAlgorithm.value = true;
-
-      try {
-        const res = await axiosInstance.get('danesfield/algorithm/');
-        algorithm.value = res.data;
-      } catch (error) {
-        // TODO: Handle
-      }
-
-      fetchingAlgorithm.value = false;
+    function datasetCreated() {
+      fetchDatasetList();
+      datasetDialogVisible.value = false;
     }
 
     // /////////////////
@@ -106,13 +93,12 @@ export default defineComponent({
     async function fetchTasks() {
       // eslint-disable-next-line @typescript-eslint/camelcase
       const res1 = await axiosInstance.get('tasks/', { params: { algorithm__pk: 1 } });
-      tasks.value = res1.data.results.sort(
-        (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
-      );
-
       // eslint-disable-next-line @typescript-eslint/camelcase
       const res2 = await axiosInstance.get('tasks/', { params: { algorithm__pk: 2 } });
-      tasks.value = tasks.value.concat(res2.data.results.sort(
+
+      tasks.value = res1.data.results.sort(
+        (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
+      ).concat(res2.data.results.sort(
         (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
       ));
 
@@ -241,7 +227,6 @@ export default defineComponent({
     }
 
     onMounted(() => {
-      fetchAlgorithm();
       fetchTasks();
       fetchDatasetList();
     });
@@ -254,12 +239,10 @@ export default defineComponent({
       fetchingDatasetList,
       datasetList,
       datasetToRunOn,
+      datasetDialogVisible,
+      datasetCreated,
 
-      algorithm,
       runAlgorithmDialog,
-      showAlgorithmDetails,
-      fetchingAlgorithm,
-      fetchAlgorithm,
 
       tasks,
       selectedTask,
@@ -288,7 +271,7 @@ export default defineComponent({
   >
     <v-row no-gutters>
       <v-col>
-        <v-dialog>
+        <v-dialog v-model="datasetDialogVisible">
           <template v-slot:activator="{ on }">
             <v-btn v-on="on">
               New Dataset
@@ -298,7 +281,7 @@ export default defineComponent({
               </v-icon>
             </v-btn>
           </template>
-          <create-dataset />
+          <create-dataset @created="datasetCreated" />
         </v-dialog>
       </v-col>
     </v-row>
