@@ -137,10 +137,6 @@ export default defineComponent({
 
       <v-card-title class="px-1">
         Select Files
-
-        <template v-if="files.length">
-          ({{ files.length }} selected)
-        </template>
       </v-card-title>
       <v-card outlined>
         <v-data-table
@@ -152,6 +148,7 @@ export default defineComponent({
           :headers="fileListHeaders"
           selectable-key="id"
           show-select
+          single-select
         >
           <template v-slot:top>
             <v-text-field
