@@ -1,4 +1,4 @@
-import { ref, watch } from '@vue/composition-api';
+import { ref, watch } from 'vue';
 import {
   Cartesian3, Color, PinBuilder, VerticalOrigin,
 } from 'cesium';

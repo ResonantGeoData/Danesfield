@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from '@vue/composition-api';
+import { defineComponent, onMounted, ref } from 'vue';
 import { axiosInstance } from '@/api';
 import DatasetList from '@/components/DatasetList.vue';
 import CesiumViewer from '@/components/CesiumViewer.vue';

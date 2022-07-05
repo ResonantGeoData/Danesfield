@@ -1,6 +1,6 @@
 <script lang="ts">
 import { uploadFiles } from '@/utils/upload';
-import { defineComponent, ref, watch } from '@vue/composition-api';
+import { defineComponent, ref, watch } from 'vue';
 
 export default defineComponent({
   name: 'UploadDialog',

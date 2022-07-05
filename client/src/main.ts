@@ -3,7 +3,6 @@ import { Ion as CesiumIon } from 'cesium';
 import * as Sentry from '@sentry/vue';
 
 // Composition plugin must be the first local import
-import '@/plugins/composition';
 import App from './App.vue';
 import router from './router';
 import vuetify from './plugins/vuetify';

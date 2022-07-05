@@ -1,5 +1,5 @@
 import { Color, GeoJsonDataSource, RequestScheduler } from 'cesium';
-import { ref } from '@vue/composition-api';
+import { ref } from 'vue';
 import type { GeoJSON } from 'geojson';  // eslint-disable-line
 
 // Don't limit the amount of requests Cesium can make at once

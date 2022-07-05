@@ -1,5 +1,5 @@
 import { GeoJsonDataSource, HeadingPitchRange, Math } from 'cesium';
-import { ref, watch } from '@vue/composition-api';
+import { ref, watch } from 'vue';
 import { cesiumViewer, addGeojson } from '@/store/cesium';
 import type { GeoJSON } from 'geojson';  // eslint-disable-line
 

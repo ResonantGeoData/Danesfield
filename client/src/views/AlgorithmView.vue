@@ -1,7 +1,7 @@
 <script lang="ts">
 import {
   defineComponent, ref, onMounted, computed, watch, watchEffect,
-} from '@vue/composition-api';
+} from 'vue';
 import filesize from 'filesize';
 
 import { axiosInstance } from '@/api';

@@ -1,7 +1,7 @@
 <script lang="ts">
 import {
   computed, defineComponent, reactive, ref,
-} from '@vue/composition-api';
+} from 'vue';
 import { axiosInstance, oauthClient } from '@/api';
 
 export default defineComponent({

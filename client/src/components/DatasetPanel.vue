@@ -16,7 +16,7 @@
 
 <script lang="ts">
 import { axiosInstance } from '@/api';
-import { defineComponent, ref, watch } from '@vue/composition-api';
+import { defineComponent, ref, watch } from 'vue';
 import FileList from './FileList.vue';
 
 export default defineComponent({

@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from '@vue/composition-api';
+import { defineComponent } from 'vue';
 import DatasetList from '@/components/DatasetList.vue';
 import CesiumViewer from '@/components/CesiumViewer.vue';
 import DatasetPanel from '@/components/DatasetPanel.vue';

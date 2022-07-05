@@ -5,7 +5,7 @@ import {
   onMounted,
   PropType,
   ref,
-} from '@vue/composition-api';
+} from 'vue';
 import { cesiumViewer } from '@/store/cesium';
 import { Camera, Viewer } from 'cesium';
 import { imageryViewModels } from '@/utils/cesium';
