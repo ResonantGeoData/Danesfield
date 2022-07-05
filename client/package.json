@@ -41,7 +41,6 @@
     "strip-pragma-loader": "^1.0.0",
     "typescript": "~3.9.3",
     "vue-cli-plugin-vuetify": "~2.1.0",
-    "vue-template-compiler": "^2.6.11",
     "vuetify-loader": "^1.9.0"
   },
   "eslintConfig": {
