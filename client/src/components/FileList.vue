@@ -137,7 +137,7 @@
 <script lang="ts">
 import {
   defineComponent, ref, PropType, onMounted,
-} from '@vue/composition-api';
+} from 'vue';
 import { axiosInstance } from '@/api';
 import { addVisibleOverlay, visibleOverlayIds } from '@/store/cesium/layers';
 import { cesiumViewer } from '@/store/cesium';

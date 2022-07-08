@@ -1,7 +1,7 @@
 <script lang="ts">
 import {
   computed, defineComponent, onMounted, ref,
-} from '@vue/composition-api';
+} from 'vue';
 
 import { axiosInstance } from '@/api';
 import { ChecksumFile } from '@/types';

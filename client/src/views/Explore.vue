@@ -16,8 +16,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from '@vue/composition-api';
+import { defineComponent, onMounted, ref } from 'vue';
 import { axiosInstance } from '@/api';
+// eslint-disable-next-line import/no-cycle
+import router from '@/router';
 import DatasetList from '@/components/DatasetList.vue';
 import CesiumViewer from '@/components/CesiumViewer.vue';
 import DatasetPanel from '@/components/DatasetPanel.vue';
@@ -33,7 +35,7 @@ export default defineComponent({
   components: {
     DatasetList, CesiumViewer, DatasetPanel,
   },
-  setup(props, ctx) {
+  setup() {
     const footprints = ref({});
 
     onMounted(async () => {
@@ -55,7 +57,7 @@ export default defineComponent({
             movement.position,
           );
 
-        ctx.root.$router.push({ name: 'focus', params: { datasetId: clickedObject.id.name as string } });
+        router.push({ name: 'focus', params: { datasetId: clickedObject.id.name as string } });
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     });
 

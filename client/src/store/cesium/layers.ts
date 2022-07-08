@@ -4,7 +4,7 @@ import {
   rgdTokenSignature, rgdImagery,
 } from '@/api';
 import { TileParamsType } from '@/store/types';
-import { ref, watch } from '@vue/composition-api';
+import { ref, watch } from 'vue';
 
 import { cesiumViewer } from '@/store/cesium';
 

@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from '@vue/composition-api';
+import { defineComponent, ref } from 'vue';
 import { axiosInstance } from '@/api';
 import router from '@/router';
 import { AxiosResponse } from 'axios';

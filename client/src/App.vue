@@ -1,13 +1,13 @@
 <script lang="ts">
 import {
-  computed, defineComponent, reactive, ref,
-} from '@vue/composition-api';
+  computed, defineComponent, ref,
+} from 'vue';
 import { axiosInstance, oauthClient } from '@/api';
 
-export default defineComponent({
-  setup(props, ctx) {
-    const router = reactive(ctx.root.$router);
+import router from '@/router';
 
+export default defineComponent({
+  setup() {
     const loginText = computed(() => (oauthClient.isLoggedIn ? 'Logout' : 'Login'));
     const logInOrOut = () => {
       if (oauthClient.isLoggedIn) {
