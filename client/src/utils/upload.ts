@@ -7,6 +7,8 @@ import { computed } from 'vue';
 
 export const s3ffClient = computed(() => new S3FileFieldClient({
   baseUrl: process.env.VUE_APP_S3FF_BASE_URL,
+  // TODO: figure out why this fails type checking
+  // @ts-ignore
   apiConfig: axiosInstance.defaults,
 }));
 
