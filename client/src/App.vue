@@ -1,10 +1,10 @@
 <script lang="ts">
 import {
-  computed, defineComponent, ref
+  computed, defineComponent, ref,
 } from 'vue';
 import { axiosInstance, oauthClient } from '@/api';
 
-import router from '@/router'
+import router from '@/router';
 
 export default defineComponent({
   setup() {

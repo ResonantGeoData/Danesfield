@@ -18,6 +18,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue';
 import { axiosInstance } from '@/api';
+// eslint-disable-next-line import/no-cycle
 import router from '@/router';
 import DatasetList from '@/components/DatasetList.vue';
 import CesiumViewer from '@/components/CesiumViewer.vue';
