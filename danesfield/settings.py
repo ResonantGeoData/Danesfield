@@ -5,7 +5,6 @@ from pathlib import Path
 from composed_configuration import (
     ComposedConfiguration,
     DevelopmentBaseConfiguration,
-    HerokuProductionBaseConfiguration,
     ProductionBaseConfiguration,
     TestingBaseConfiguration,
 )
@@ -47,9 +46,10 @@ class TestingConfiguration(DanesfieldMixin, TestingBaseConfiguration):
     CELERY_TASK_ALWAYS_EAGER = True
 
 
-class ProductionConfiguration(DanesfieldMixin, ProductionBaseConfiguration):
-    pass
+class AWSProductionConfiguration(DanesfieldMixin, ProductionBaseConfiguration):
+    # when using instance profile Secret/Access should be set to None
+    AWS_S3_ACCESS_KEY_ID = None
+    AWS_S3_SECRET_ACCESS_KEY = None
+    # Proxy sends this header to indicate that it is a secure connection
+    SECURE_PROXY_SSL_HEADER = values.TupleValue(('HTTP_X_FORWARDED_PROTO', 'https'), separator=',')
 
-
-class HerokuProductionConfiguration(DanesfieldMixin, HerokuProductionBaseConfiguration):
-    pass
