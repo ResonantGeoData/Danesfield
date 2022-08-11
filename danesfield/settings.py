@@ -51,5 +51,5 @@ class AWSProductionConfiguration(DanesfieldMixin, ProductionBaseConfiguration):
     AWS_S3_ACCESS_KEY_ID = None
     AWS_S3_SECRET_ACCESS_KEY = None
     # Proxy sends this header to indicate that it is a secure connection
-    SECURE_PROXY_SSL_HEADER = values.TupleValue(('HTTP_X_FORWARDED_PROTO', 'https'), separator=',')
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
