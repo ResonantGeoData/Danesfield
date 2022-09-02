@@ -1,6 +1,6 @@
-<script lang="ts">
+<script setup lang="ts">
 import {
-  defineComponent, onMounted, ref, watch, PropType,
+  onMounted, ref, watch, PropType,
 } from 'vue';
 
 import { axiosInstance } from '@/api';
@@ -12,62 +12,53 @@ const fileListHeaders = [
   { text: 'Uploaded', value: 'created' },
 ];
 
-export default defineComponent({
-  name: 'FileSelector',
-  props: {
-    single: {
-      type: Boolean,
-      default: false,
-    },
-    value: {
-      type: Array as PropType<ChecksumFile[]>,
-      required: false,
-    },
+const props = defineProps({
+  single: {
+    type: Boolean,
+    default: false,
   },
-  setup(props, ctx) {
-    // Form datafileList
-    const fileList = ref<ChecksumFile[]>([]);
-    const fileListSearch = ref('');
-    const fileListLoading = ref(false);
-    async function fetchFileList() {
-      fileListLoading.value = true;
-
-      try {
-        // TODO: Deal with server pagination
-        const datasetsRes = await axiosInstance.get('rgd/checksum_file', { params: { limit: 1000 } });
-        fileList.value = datasetsRes.data.results;
-      } catch (error) {
-        // TODO: Handle
-      }
-
-      fileListLoading.value = false;
-    }
-
-    // Intialize on mount
-    onMounted(async () => {
-      fetchFileList();
-    });
-
-    // Emit event anytime selected files are changed
-    const selectedFiles = ref<ChecksumFile[]>([]);
-    watch(selectedFiles, (val) => {
-      ctx.emit('input', val);
-    });
-
-    // Watch for value set
-    watch(() => props.value, (val) => {
-      selectedFiles.value = val || [];
-    });
-
-    return {
-      selectedFiles,
-      fileList,
-      fileListHeaders,
-      fileListSearch,
-      fileListLoading,
-    };
+  value: {
+    type: Array as PropType<ChecksumFile[]>,
+    required: true,
   },
 });
+
+const emit = defineEmits(['input']);
+
+// Form datafileList
+const fileList = ref<ChecksumFile[]>([]);
+const fileListSearch = ref('');
+const fileListLoading = ref(false);
+async function fetchFileList() {
+  fileListLoading.value = true;
+
+  try {
+    // TODO: Deal with server pagination
+    const datasetsRes = await axiosInstance.get('rgd/checksum_file', { params: { limit: 1000 } });
+    fileList.value = datasetsRes.data.results;
+  } catch (error) {
+    // TODO: Handle
+  }
+
+  fileListLoading.value = false;
+}
+
+// Intialize on mount
+onMounted(async () => {
+  fetchFileList();
+});
+
+// Emit event anytime selected files are changed
+const selectedFiles = ref<ChecksumFile[]>([]);
+watch(selectedFiles, (val) => {
+  emit('input', val);
+});
+
+// Watch for value set
+watch(() => props.value, (val) => {
+  selectedFiles.value = val || [];
+});
+
 </script>
 
 <template>
@@ -82,7 +73,7 @@ export default defineComponent({
     show-select
     :single-select="single"
   >
-    <template v-slot:top>
+    <template #top>
       <v-text-field
         v-model="fileListSearch"
         label="Search Files"
@@ -92,7 +83,7 @@ export default defineComponent({
     </template>
 
     <!-- eslint-disable-next-line vue/valid-v-slot -->
-    <template v-slot:item.type="{ item }">
+    <template #item.type="{ item }">
       {{ item.type === 1 ? 'File' : 'Url' }}
     </template>
   </v-data-table>

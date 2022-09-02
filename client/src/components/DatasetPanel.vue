@@ -14,31 +14,23 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, watch } from 'vue';
 import { axiosInstance } from '@/api';
-import { defineComponent, ref, watch } from 'vue';
 import FileList from './FileList.vue';
 
-export default defineComponent({
-  name: 'DatasetPanel',
-  components: { FileList },
-  props: {
-    datasetId: {
-      type: String,
-      required: true,
-    },
-  },
-  setup(props) {
-    const properties = ref();
-
-    watch(() => props.datasetId, async () => {
-      const { data } = await axiosInstance.get(`/datasets/${props.datasetId}/`);
-      properties.value = data;
-    }, { immediate: true });
-
-    return {
-      properties,
-    };
+const props = defineProps({
+  datasetId: {
+    type: String,
+    required: true,
   },
 });
+
+const properties = ref();
+
+watch(() => props.datasetId, async () => {
+  const { data } = await axiosInstance.get(`/datasets/${props.datasetId}/`);
+  properties.value = data;
+}, { immediate: true });
+
 </script>

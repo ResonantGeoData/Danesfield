@@ -1,50 +1,41 @@
-<script lang="ts">
+<script setup lang="ts">
+import { ref, watch } from 'vue';
 import { uploadFiles } from '@/utils/upload';
-import { defineComponent, ref, watch } from 'vue';
 
-export default defineComponent({
-  name: 'UploadDialog',
-  props: {
-    single: {
-      type: Boolean,
-      default: false,
-    },
+defineProps({
+  single: {
+    type: Boolean,
+    default: false,
   },
-  setup(props, ctx) {
-    const filesModel = ref<File[] | File>();
-    const files = ref<File[]>([]);
-    const uploading = ref(false);
-    async function upload() {
-      uploading.value = true;
-      const uploadedFiles = await uploadFiles(files.value);
-      uploading.value = false;
+});
 
-      ctx.emit('complete', uploadedFiles);
+const emit = defineEmits(['complete']);
 
-      // Cleanup
-      files.value = [];
-      filesModel.value = undefined;
-    }
+const filesModel = ref<File[] | File>();
+const files = ref<File[]>([]);
+const uploading = ref(false);
+async function upload() {
+  uploading.value = true;
+  const uploadedFiles = await uploadFiles(files.value);
+  uploading.value = false;
 
-    // Set files to appropriate value
-    watch(filesModel, (val) => {
-      let returnVal = [] as File[];
-      if (val instanceof File) {
-        returnVal = [val];
-      } else if (Array.isArray(val)) {
-        returnVal = val;
-      }
+  emit('complete', uploadedFiles);
 
-      files.value = returnVal;
-    });
+  // Cleanup
+  files.value = [];
+  filesModel.value = undefined;
+}
 
-    return {
-      files,
-      filesModel,
-      upload,
-      uploading,
-    };
-  },
+// Set files to appropriate value
+watch(filesModel, (val) => {
+  let returnVal = [] as File[];
+  if (val instanceof File) {
+    returnVal = [val];
+  } else if (Array.isArray(val)) {
+    returnVal = val;
+  }
+
+  files.value = returnVal;
 });
 </script>
 

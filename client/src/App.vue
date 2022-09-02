@@ -1,45 +1,31 @@
-<script lang="ts">
-import {
-  computed, defineComponent, ref,
-} from 'vue';
+<script setup lang="ts">
+import { computed, ref } from 'vue';
 import { axiosInstance, oauthClient } from '@/api';
 
 import router from '@/router';
 
-export default defineComponent({
-  setup() {
-    const loginText = computed(() => (oauthClient.isLoggedIn ? 'Logout' : 'Login'));
-    const logInOrOut = () => {
-      if (oauthClient.isLoggedIn) {
-        oauthClient.logout();
-      } else {
-        oauthClient.redirectToLogin();
-      }
-    };
+const loginText = computed(() => (oauthClient.isLoggedIn ? 'Logout' : 'Login'));
+const logInOrOut = () => {
+  if (oauthClient.isLoggedIn) {
+    oauthClient.logout();
+  } else {
+    oauthClient.redirectToLogin();
+  }
+};
 
-    // Link for girder tab
-    const apiLink = `${axiosInstance.defaults.baseURL}/docs/swagger`;
-    const tab = computed(() => router.currentRoute.path);
+// Link for girder tab
+const apiLink = `${axiosInstance.defaults.baseURL}/docs/swagger`;
+const tab = computed(() => router.currentRoute.path);
 
-    // onTabChange is only called when the api link is clicked.
-    // Once clicked, set value back to what it should be.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tabsRef = ref<any>(null);
-    function onTabChange() {
-      const itemsComponent = tabsRef.value.$refs.items;
-      itemsComponent.internalValue = tab.value;
-    }
+// onTabChange is only called when the api link is clicked.
+// Once clicked, set value back to what it should be.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const tabsRef = ref<any>(null);
+function onTabChange() {
+  const itemsComponent = tabsRef.value.$refs.items;
+  itemsComponent.internalValue = tab.value;
+}
 
-    return {
-      loginText,
-      logInOrOut,
-      tab,
-      tabsRef,
-      apiLink,
-      onTabChange,
-    };
-  },
-});
 </script>
 
 <template>

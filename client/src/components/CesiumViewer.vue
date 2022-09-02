@@ -1,56 +1,40 @@
-<script lang="ts">
+<script setup lang="ts">
 import 'cesium/Build/Cesium/Widgets/widgets.css';
-import {
-  defineComponent,
-  onMounted,
-  PropType,
-  ref,
-} from 'vue';
-import { cesiumViewer } from '@/store/cesium';
+import { onMounted, PropType } from 'vue';
 import { Camera, Viewer } from 'cesium';
+import { cesiumViewer } from '@/store/cesium';
 import { imageryViewModels } from '@/utils/cesium';
 import type { Polygon } from 'geojson';  // eslint-disable-line
 
-export default defineComponent({
-  name: 'CesiumViewer',
-  props: {
-    footprints: {
-      type: Object as PropType<Partial<Record<number, Polygon>>>,
-      default: null,
-    },
-  },
-  setup() {
-    const properties = ref();
-    const dialog = ref(false);
-
-    onMounted(() => {
-      // Initialize the viewer - this works without a token
-      cesiumViewer.value = new Viewer('cesiumContainer', {
-        // imageryProvider: false,
-        imageryProviderViewModels: imageryViewModels,
-        selectedImageryProviderViewModel: imageryViewModels[5], // Voyager
-        animation: true,
-        shouldAnimate: true,
-        timeline: true,
-        infoBox: false,
-        homeButton: false,
-        fullscreenButton: false,
-        selectionIndicator: false,
-        geocoder: false,
-      });
-      // Remove the Terrain section of the baseLayerPicker
-      cesiumViewer.value.baseLayerPicker.viewModel.terrainProviderViewModels.removeAll();
-
-      cesiumViewer.value.forceResize();
-      Camera.DEFAULT_VIEW_FACTOR = 0;
-    });
-
-    return {
-      dialog,
-      properties,
-    };
+defineProps({
+  footprints: {
+    type: Object as PropType<Partial<Record<number, Polygon>>>,
+    default: null,
   },
 });
+
+onMounted(() => {
+  // Initialize the viewer - this works without a token
+  cesiumViewer.value = new Viewer('cesiumContainer', {
+    // imageryProvider: false,
+    imageryProviderViewModels: imageryViewModels,
+    selectedImageryProviderViewModel: imageryViewModels[5], // Voyager
+    animation: true,
+    shouldAnimate: true,
+    timeline: true,
+    infoBox: false,
+    homeButton: false,
+    fullscreenButton: false,
+    selectionIndicator: false,
+    geocoder: false,
+  });
+  // Remove the Terrain section of the baseLayerPicker
+  cesiumViewer.value.baseLayerPicker.viewModel.terrainProviderViewModels.removeAll();
+
+  cesiumViewer.value.forceResize();
+  Camera.DEFAULT_VIEW_FACTOR = 0;
+});
+
 </script>
 
 <template>

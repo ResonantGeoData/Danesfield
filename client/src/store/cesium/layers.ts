@@ -1,10 +1,10 @@
 import { Rectangle, UrlTemplateImageryProvider } from 'cesium';
+import { ref, watch } from 'vue';
 import {
   rgdImageTilesMeta, rgdCreateUrl,
   rgdTokenSignature, rgdImagery,
 } from '@/api';
 import { TileParamsType } from '@/store/types';
-import { ref, watch } from 'vue';
 
 import { cesiumViewer } from '@/store/cesium';
 
@@ -31,9 +31,7 @@ const generateTileProvider = async (imageId: number, index = 0) => {
   const data = await rgdImageTilesMeta(imageId);
   const tileSignature = await rgdTokenSignature(); // may need await
   const extents = data.bounds;
-  const rectangle = Rectangle.fromDegrees(
-    extents.xmin, extents.ymin, extents.xmax, extents.ymax,
-  );
+  const rectangle = Rectangle.fromDegrees(extents.xmin, extents.ymin, extents.xmax, extents.ymax);
   const tileProvider = new UrlTemplateImageryProvider({
     url: rgdCreateUrl(`rgd_imagery/tiles/${imageId}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857&band=${index}&signature=${tileSignature}`),
     subdomains: [], // We do not need or provide this in RGD

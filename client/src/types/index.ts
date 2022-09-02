@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 // eslint-disable-next-line import/no-unresolved
 import type { GeoJSON, MultiPoint, MultiPolygon } from 'geojson';
 

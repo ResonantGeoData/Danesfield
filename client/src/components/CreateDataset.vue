@@ -1,11 +1,11 @@
-<script lang="ts">
-import {
-  computed, defineComponent, onMounted, ref,
-} from 'vue';
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue';
 
 import { axiosInstance } from '@/api';
 import { ChecksumFile } from '@/types';
 import UploadDialog from '@/components/UploadDialog.vue';
+
+const emit = defineEmits(['created']);
 
 const fileListHeaders = [
   { text: 'Name', value: 'name' },
@@ -13,82 +13,61 @@ const fileListHeaders = [
   { text: 'Uploaded', value: 'created' },
 ];
 
-export default defineComponent({
-  name: 'CreateDataset',
-  components: {
-    UploadDialog,
-  },
-  setup(props, ctx) {
-    // Form datafileList
-    const name = ref('');
-    const files = ref<ChecksumFile[]>([]);
-    const allFieldsValid = computed(() => name.value && files.value.length);
+// Form datafileList
+const name = ref('');
+const files = ref<ChecksumFile[]>([]);
+const allFieldsValid = computed(() => name.value && files.value.length);
 
-    const fileList = ref<ChecksumFile[]>([]);
-    const fileListSearch = ref('');
-    const fileListLoading = ref(false);
-    async function fetchFileList() {
-      fileListLoading.value = true;
+const fileList = ref<ChecksumFile[]>([]);
+const fileListSearch = ref('');
+const fileListLoading = ref(false);
+async function fetchFileList() {
+  fileListLoading.value = true;
 
-      try {
-        // TODO: Deal with server pagination
-        const datasetsRes = await axiosInstance.get('rgd/checksum_file', { params: { limit: 1000 } });
-        fileList.value = datasetsRes.data.results;
-      } catch (error) {
-        // TODO: Handle
-      }
+  try {
+    // TODO: Deal with server pagination
+    const datasetsRes = await axiosInstance.get('rgd/checksum_file', { params: { limit: 1000 } });
+    fileList.value = datasetsRes.data.results;
+  } catch (error) {
+    // TODO: Handle
+  }
 
-      fileListLoading.value = false;
-    }
+  fileListLoading.value = false;
+}
 
-    const uploadDialogOpen = ref(false);
-    async function filesUploaded() {
-      uploadDialogOpen.value = false;
-      fetchFileList();
-    }
+const uploadDialogOpen = ref(false);
+async function filesUploaded() {
+  uploadDialogOpen.value = false;
+  fetchFileList();
+}
 
-    // Intialize on mount
-    onMounted(async () => {
-      fetchFileList();
-    });
-
-    async function createDataset() {
-      if (!allFieldsValid.value) {
-        throw new Error('Attempted to create dataset with empty name and file list!');
-      }
-
-      const body = {
-        name: name.value,
-        files: files.value.map((f) => f.id),
-      };
-
-      const res = await axiosInstance.post('datasets/', body);
-      if (res.status === 201) {
-        // TODO
-        // router.push({ name: 'algorithm', params: { id: res.data.id.toString() } });
-
-        ctx.emit('created', res.data);
-
-        // Clear data
-        name.value = '';
-        files.value = [];
-      }
-    }
-
-    return {
-      name,
-      files,
-      fileList,
-      fileListHeaders,
-      fileListSearch,
-      fileListLoading,
-      uploadDialogOpen,
-      filesUploaded,
-      createDataset,
-      allFieldsValid,
-    };
-  },
+// Intialize on mount
+onMounted(async () => {
+  fetchFileList();
 });
+
+async function createDataset() {
+  if (!allFieldsValid.value) {
+    throw new Error('Attempted to create dataset with empty name and file list!');
+  }
+
+  const body = {
+    name: name.value,
+    files: files.value.map((f) => f.id),
+  };
+
+  const res = await axiosInstance.post('datasets/', body);
+  if (res.status === 201) {
+    // TODO
+    // router.push({ name: 'algorithm', params: { id: res.data.id.toString() } });
+
+    emit('created', res.data);
+
+    // Clear data
+    name.value = '';
+    files.value = [];
+  }
+}
 </script>
 
 <template>
@@ -99,7 +78,7 @@ export default defineComponent({
         v-model="uploadDialogOpen"
         width="60vw"
       >
-        <template v-slot:activator="{ on }">
+        <template #activator="{ on }">
           <v-btn
             color="primary"
             class="mx-1"
@@ -150,7 +129,7 @@ export default defineComponent({
           show-select
           single-select
         >
-          <template v-slot:top>
+          <template #top>
             <v-text-field
               v-model="fileListSearch"
               label="Search Files"
@@ -160,7 +139,7 @@ export default defineComponent({
           </template>
 
           <!-- eslint-disable-next-line vue/valid-v-slot -->
-          <template v-slot:item.type="{ item }">
+          <template #item.type="{ item }">
             {{ item.type === 1 ? 'File' : 'Url' }}
           </template>
         </v-data-table>

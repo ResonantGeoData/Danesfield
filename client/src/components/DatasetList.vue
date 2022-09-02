@@ -12,7 +12,7 @@
       class="my-2"
       outlined
     >
-      <v-list-item @click="viewDataset(dataset.id)">
+      <v-list-item @click="viewDataset(dataset.id.toString())">
         <v-list-item-content>
           <v-list-item-title>{{ dataset.name }}</v-list-item-title>
         </v-list-item-content>
@@ -21,30 +21,21 @@
   </v-list>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue';
+import { AxiosResponse } from 'axios';
 import { axiosInstance } from '@/api';
 import router from '@/router';
-import { AxiosResponse } from 'axios';
+import { Dataset } from '@/types';
 
-export default defineComponent({
-  setup() {
-    const datasets = ref([]);
+const datasets = ref<Dataset[]>([]);
 
-    // eslint-disable-next-line @typescript-eslint/camelcase
-    axiosInstance.get('/datasets/', { params: { include_input_datasets: false } })
-      .then((resp: AxiosResponse) => {
-        datasets.value = resp.data.results;
-      });
+axiosInstance.get('/datasets/', { params: { include_input_datasets: false } })
+  .then((resp: AxiosResponse) => {
+    datasets.value = resp.data.results;
+  });
 
-    function viewDataset(datasetId: string) {
-      router.push({ name: 'focus', params: { datasetId } });
-    }
-
-    return {
-      datasets,
-      viewDataset,
-    };
-  },
-});
+function viewDataset(datasetId: string) {
+  router.push({ name: 'focus', params: { datasetId } });
+}
 </script>
