@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-simple-table v-if="!loading">
-      <template v-slot:default>
+      <template #default>
         <thead>
           <tr>
             <th class="text-left">
@@ -134,234 +134,209 @@
   </div>
 </template>
 
-<script lang="ts">
-import {
-  defineComponent, ref, PropType, onMounted,
-} from 'vue';
+<script setup lang="ts">
+import { ref, PropType, onMounted } from 'vue';
+import * as Cesium from 'cesium';
 import { axiosInstance } from '@/api';
 import { addVisibleOverlay, visibleOverlayIds } from '@/store/cesium/layers';
 import { cesiumViewer } from '@/store/cesium';
-import * as Cesium from 'cesium';
 import { addFootprint, removeFootprint, visibleFootprints } from '@/store/cesium/footprints';
 import { FMVMeta, RasterMeta, Tiles3DMeta } from '@/types';
 import { renderFlightPath } from '@/utils/cesium';
 import FMVViewer from './FMVViewer.vue';
 
-export default defineComponent({
-  name: 'FileList',
-  components: { FMVViewer },
-  props: {
-    datasetId: {
-      type: String,
-      required: true,
-    },
-    rasterIds: {
-      type: Array as PropType<number[]>,
-      required: true,
-    },
-    meshIds: {
-      type: Array as PropType<number[]>,
-      required: true,
-    },
-    tiles3dIds: {
-      type: Array as PropType<number[]>,
-      required: true,
-    },
-    fmvIds: {
-      type: Array as PropType<number[]>,
-      required: true,
-    },
+const props = defineProps({
+  datasetId: {
+    type: String,
+    required: true,
   },
-  setup(props) {
-    const rasters = ref<Record<number, RasterMeta>>({});
-    const tiles3d = ref<Record<number, Tiles3DMeta>>({});
-    const fmvs = ref<Record<number, FMVMeta>>({});
+  rasterIds: {
+    type: Array as PropType<number[]>,
+    required: true,
+  },
+  meshIds: {
+    type: Array as PropType<number[]>,
+    required: true,
+  },
+  tiles3dIds: {
+    type: Array as PropType<number[]>,
+    required: true,
+  },
+  fmvIds: {
+    type: Array as PropType<number[]>,
+    required: true,
+  },
+});
 
-    const fmvBeingViewed = ref<FMVMeta | null>(null);
+const rasters = ref<Record<number, RasterMeta>>({});
+const tiles3d = ref<Record<number, Tiles3DMeta>>({});
+const fmvs = ref<Record<number, FMVMeta>>({});
 
-    const loading = ref(true);
+const fmvBeingViewed = ref<FMVMeta | null>(null);
 
-    function rasterIsVisible(rasterId: number) {
-      return visibleOverlayIds.value?.includes(rasterId);
+const loading = ref(true);
+
+function rasterIsVisible(rasterId: number) {
+  return visibleOverlayIds.value?.includes(rasterId);
+}
+
+async function setRasterVisibility(rasterId: number) {
+  if (rasterIsVisible(rasterId)) {
+    visibleOverlayIds.value = visibleOverlayIds.value?.filter((id) => id !== rasterId);
+  } else {
+    addVisibleOverlay(rasterId);
+  }
+}
+
+function tiles3dIsVisible(tiles3dId: number) {
+  const current = tiles3d.value[tiles3dId];
+  const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
+  const { scene } = cesiumViewer.value;
+  const { primitives } = scene;
+  for (let i = 0; i < primitives.length; i += 1) {
+    const primitive = primitives.get(i);
+    // eslint-disable-next-line no-underscore-dangle
+    if (primitive._url === tilesetURL) {
+      return primitive.show;
     }
+  }
+  return false;
+}
 
-    async function setRasterVisibility(rasterId: number) {
-      if (rasterIsVisible(rasterId)) {
-        visibleOverlayIds.value = visibleOverlayIds.value?.filter((id) => id !== rasterId);
-      } else {
-        addVisibleOverlay(rasterId);
+function tiles3dFootprintIsVisible(tiles3dId: number) {
+  return Object.keys(visibleFootprints.value).includes(`tiles3d_${tiles3dId}`);
+}
+
+function setTiles3dFootprintVisibility(tiles3dId: number) {
+  if (tiles3dFootprintIsVisible(tiles3dId)) {
+    removeFootprint(tiles3dId, 'tiles3d');
+  } else {
+    addFootprint(tiles3dId, tiles3d.value[tiles3dId].footprint, 'tiles3d');
+  }
+}
+
+function setTiles3dVisibility(tiles3dId: number) {
+  const current = tiles3d.value[tiles3dId];
+  const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
+  const { scene } = cesiumViewer.value;
+  const { primitives } = scene;
+
+  // Check if this tileset is already downloaded. If it is, show/hide it and return.
+  for (let i = 0; i < primitives.length; i += 1) {
+    const currentTileset = primitives.get(i);
+    // eslint-disable-next-line no-underscore-dangle
+    if (currentTileset._url === tilesetURL) {
+      currentTileset.show = !currentTileset.show;
+      return;
+    }
+  }
+
+  // Otherwise, download it and show it.
+  const tileset = new Cesium.Cesium3DTileset({
+    url: tilesetURL,
+  });
+  cesiumViewer.value.scene.primitives.add(tileset);
+}
+
+function setVideoSrc(fmvId: number) {
+  if (!fmvBeingViewed.value) {
+    fmvBeingViewed.value = fmvs.value[fmvId];
+  } else {
+    fmvBeingViewed.value = null;
+  }
+}
+
+function fmvFootprintIsVisible(fmvId: number) {
+  return Object.keys(visibleFootprints.value).includes(`fmv_${fmvId}`);
+}
+
+async function setFMVFootprintVisibility(fmvId: number) {
+  loading.value = true;
+  if (fmvFootprintIsVisible(fmvId)) {
+    // If the footprint is already visible, make it invisible
+    removeFootprint(fmvId, 'fmv');
+  } else {
+    addFootprint(fmvId, fmvs.value[fmvId].ground_union, 'fmv');
+  }
+
+  loading.value = false;
+}
+
+function fmvFlightPathIsVisible(fmvId: number) {
+  const { entities } = cesiumViewer.value;
+  for (let i = 0; i < entities.values.length; i += 1) {
+    if (entities.values[i].id.startsWith(`flight_path_${fmvId}`)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function setFMVFlightPathVisibility(fmvId: number) {
+  loading.value = true;
+
+  // If the flight path is already visible, make it invisible
+  if (fmvFlightPathIsVisible(fmvId)) {
+    const { entities } = cesiumViewer.value;
+    const entitiesToRemove: string[] = [];
+    for (let i = 0; i < entities.values.length; i += 1) {
+      // remove all cesium entities associated with this flight path
+      if (entities.values[i].id.startsWith(`flight_path_${fmvId}`)) {
+        entitiesToRemove.push(entities.values[i].id);
       }
     }
+    entitiesToRemove.forEach((id) => entities.removeById(id));
+    loading.value = false;
+    return;
+  }
 
-    function tiles3dIsVisible(tiles3dId: number) {
-      const current = tiles3d.value[tiles3dId];
-      const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
-      const { scene } = cesiumViewer.value;
-      const { primitives } = scene;
-      for (let i = 0; i < primitives.length; i += 1) {
-        const primitive = primitives.get(i);
-        // eslint-disable-next-line no-underscore-dangle
-        if (primitive._url === tilesetURL) {
-          return primitive.show;
-        }
-      }
-      return false;
-    }
+  // otherwise, proceed with adding the flight path to the cesium map
+  const airplaneEntity = renderFlightPath(fmvId, fmvs.value[fmvId].flight_path.coordinates);
 
-    function tiles3dFootprintIsVisible(tiles3dId: number) {
-      return Object.keys(visibleFootprints.value).includes(`tiles3d_${tiles3dId}`);
-    }
-
-    function setTiles3dFootprintVisibility(tiles3dId: number) {
-      if (tiles3dFootprintIsVisible(tiles3dId)) {
-        removeFootprint(tiles3dId, 'tiles3d');
-      } else {
-        addFootprint(tiles3dId, tiles3d.value[tiles3dId].footprint, 'tiles3d');
-      }
-    }
-
-    function setTiles3dVisibility(tiles3dId: number) {
-      const current = tiles3d.value[tiles3dId];
-      const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
-      const { scene } = cesiumViewer.value;
-      const { primitives } = scene;
-
-      // Check if this tileset is already downloaded. If it is, show/hide it and return.
-      for (let i = 0; i < primitives.length; i += 1) {
-        const currentTileset = primitives.get(i);
-        // eslint-disable-next-line no-underscore-dangle
-        if (currentTileset._url === tilesetURL) {
-          currentTileset.show = !currentTileset.show;
-          return;
-        }
-      }
-
-      // Otherwise, download it and show it.
-      const tileset = new Cesium.Cesium3DTileset({
-        url: tilesetURL,
-      });
-      cesiumViewer.value.scene.primitives.add(tileset);
-    }
-
-    function setVideoSrc(fmvId: number) {
-      if (!fmvBeingViewed.value) {
-        fmvBeingViewed.value = fmvs.value[fmvId];
-      } else {
-        fmvBeingViewed.value = null;
-      }
-    }
-
-    function fmvFootprintIsVisible(fmvId: number) {
-      return Object.keys(visibleFootprints.value).includes(`fmv_${fmvId}`);
-    }
-
-    async function setFMVFootprintVisibility(fmvId: number) {
-      loading.value = true;
-      if (fmvFootprintIsVisible(fmvId)) {
-        // If the footprint is already visible, make it invisible
-        removeFootprint(fmvId, 'fmv');
-      } else {
-        addFootprint(fmvId, fmvs.value[fmvId].ground_union, 'fmv');
-      }
-
-      loading.value = false;
-    }
-
-    function fmvFlightPathIsVisible(fmvId: number) {
-      const { entities } = cesiumViewer.value;
-      for (let i = 0; i < entities.values.length; i += 1) {
-        if (entities.values[i].id.startsWith(`flight_path_${fmvId}`)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    async function setFMVFlightPathVisibility(fmvId: number) {
-      loading.value = true;
-
-      // If the flight path is already visible, make it invisible
-      if (fmvFlightPathIsVisible(fmvId)) {
-        const { entities } = cesiumViewer.value;
-        const entitiesToRemove: string[] = [];
-        for (let i = 0; i < entities.values.length; i += 1) {
-          // remove all cesium entities associated with this flight path
-          if (entities.values[i].id.startsWith(`flight_path_${fmvId}`)) {
-            entitiesToRemove.push(entities.values[i].id);
-          }
-        }
-        entitiesToRemove.forEach((id) => entities.removeById(id));
-        loading.value = false;
-        return;
-      }
-
-      // otherwise, proceed with adding the flight path to the cesium map
-      const airplaneEntity = renderFlightPath(fmvId, fmvs.value[fmvId].flight_path.coordinates);
-
-      const handler = new Cesium.ScreenSpaceEventHandler(cesiumViewer.value.scene.canvas);
-      handler.setInputAction((movement: {position: Cesium.Cartesian2}) => {
-        const clickedObject: {
+  const handler = new Cesium.ScreenSpaceEventHandler(cesiumViewer.value.scene.canvas);
+  handler.setInputAction((movement: {position: Cesium.Cartesian2}) => {
+    const clickedObject: {
           primitive: Cesium.Primitive;
            id: Cesium.Entity;
           } = cesiumViewer.value.scene.pick(
             movement.position,
           );
-        // If anywhere besides the flight path is clicked, disable any camera tracking
-        if (cesiumViewer.value.trackedEntity) {
-          cesiumViewer.value.trackedEntity = null;
-        } else if (clickedObject?.id.id?.startsWith(`flight_path_${fmvId}`)) {
-          // If the flight path is clicked, make the camera track it
-          cesiumViewer.value.trackedEntity = airplaneEntity;
-        }
-      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
-      loading.value = false;
+    // If anywhere besides the flight path is clicked, disable any camera tracking
+    if (cesiumViewer.value.trackedEntity) {
+      cesiumViewer.value.trackedEntity = null;
+    } else if (clickedObject?.id.id?.startsWith(`flight_path_${fmvId}`)) {
+      // If the flight path is clicked, make the camera track it
+      cesiumViewer.value.trackedEntity = airplaneEntity;
     }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-    onMounted(async () => {
-      await Promise.all(props.rasterIds.map(async (id) => {
-        const { data } = await axiosInstance.get(`/rgd_imagery/raster/${id}`);
-        rasters.value[data.spatial_id] = data;
-      }));
+  loading.value = false;
+}
 
-      await Promise.all(props.tiles3dIds.map(async (id) => {
-        const { data } = await axiosInstance.get(`/rgd_3d/tiles3d/${id}`);
-        tiles3d.value[data.spatial_id] = data;
-      }));
+onMounted(async () => {
+  await Promise.all(props.rasterIds.map(async (id) => {
+    const { data } = await axiosInstance.get(`/rgd_imagery/raster/${id}`);
+    rasters.value[data.spatial_id] = data;
+  }));
 
-      await Promise.all(props.fmvIds.map(async (id) => {
-        const { data } = await axiosInstance.get(`/rgd_fmv/${id}/data`);
-        fmvs.value[data.spatial_id] = data;
-      }));
+  await Promise.all(props.tiles3dIds.map(async (id) => {
+    const { data } = await axiosInstance.get(`/rgd_3d/tiles3d/${id}`);
+    tiles3d.value[data.spatial_id] = data;
+  }));
 
-      if (Object.keys(tiles3d.value).length > 0) {
-        setTiles3dVisibility(Object.values(tiles3d.value)[0].spatial_id);
-        setTiles3dFootprintVisibility(Object.values(tiles3d.value)[0].spatial_id);
-      } else if (Object.keys(rasters.value).length > 0) {
-        setRasterVisibility(Object.values(rasters.value)[0].spatial_id);
-      }
+  await Promise.all(props.fmvIds.map(async (id) => {
+    const { data } = await axiosInstance.get(`/rgd_fmv/${id}/data`);
+    fmvs.value[data.spatial_id] = data;
+  }));
 
-      loading.value = false;
-    });
+  if (Object.keys(tiles3d.value).length > 0) {
+    setTiles3dVisibility(Object.values(tiles3d.value)[0].spatial_id);
+    setTiles3dFootprintVisibility(Object.values(tiles3d.value)[0].spatial_id);
+  } else if (Object.keys(rasters.value).length > 0) {
+    setRasterVisibility(Object.values(rasters.value)[0].spatial_id);
+  }
 
-    return {
-      loading,
-      rasters,
-      tiles3d,
-      fmvs,
-      fmvBeingViewed,
-      setRasterVisibility,
-      setTiles3dVisibility,
-      setFMVFootprintVisibility,
-      setFMVFlightPathVisibility,
-      setVideoSrc,
-      fmvFootprintIsVisible,
-      fmvFlightPathIsVisible,
-      tiles3dIsVisible,
-      rasterIsVisible,
-      tiles3dFootprintIsVisible,
-      setTiles3dFootprintVisibility,
-    };
-  },
+  loading.value = false;
 });
+
 </script>

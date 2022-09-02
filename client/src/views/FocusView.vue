@@ -4,7 +4,7 @@
     no-gutters
   >
     <v-col cols="3">
-      <dataset-panel :dataset-id="datasetId" />
+      <DatasetPanel :dataset-id="datasetId" />
     </v-col>
     <v-col
       cols="9"
@@ -15,22 +15,14 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import DatasetList from '@/components/DatasetList.vue';
+<script setup lang="ts">
 import CesiumViewer from '@/components/CesiumViewer.vue';
 import DatasetPanel from '@/components/DatasetPanel.vue';
 
-export default defineComponent({
-  name: 'Focus',
-  components: {
-    DatasetList, CesiumViewer, DatasetPanel,
-  },
-  props: {
-    datasetId: {
-      type: String,
-      required: false,
-    },
+defineProps({
+  datasetId: {
+    type: String,
+    required: true,
   },
 });
 </script>

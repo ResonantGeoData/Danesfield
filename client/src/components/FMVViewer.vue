@@ -5,7 +5,7 @@
     height="240"
     autobuffer
     autoplay
-    crossorigin
+    crossorigin="true"
     loop
   >
     <source
@@ -15,88 +15,80 @@
   </video>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import {
-  defineComponent, onMounted, onUnmounted, PropType, ref,
+  onMounted, onUnmounted, PropType, ref,
 } from 'vue';
 import * as Cesium from 'cesium';
 import { cesiumViewer } from '@/store/cesium';
 import { FMVMeta } from '@/types';
 
-export default defineComponent({
-  name: 'FMVViewer',
-  props: {
-    fmvMeta: {
-      type: Object as PropType<FMVMeta>,
-      required: true,
-    },
+const props = defineProps({
+  fmvMeta: {
+    type: Object as PropType<FMVMeta>,
+    required: true,
   },
-  setup(props) {
-    const videoSynchronizer = ref<Cesium.VideoSynchronizer | null>(null);
-    const prevHierarchy = ref<Cesium.PolygonHierarchy | null>(null);
-    const polygonEntity = ref<Cesium.Entity | null>(null);
-    const videoElement = ref<HTMLVideoElement>();
+});
 
-    onMounted(() => {
-      videoSynchronizer.value = new Cesium.VideoSynchronizer({
-        clock: cesiumViewer.value.clock,
-        element: videoElement.value,
-      });
+const videoSynchronizer = ref<Cesium.VideoSynchronizer | null>(null);
+const prevHierarchy = ref<Cesium.PolygonHierarchy | null>(null);
+const polygonEntity = ref<Cesium.Entity | null>(null);
+const videoElement = ref<HTMLVideoElement>();
 
-      polygonEntity.value = new Cesium.Entity({
-        polygon: new Cesium.PolygonGraphics({
-          hierarchy: new Cesium.CallbackProperty(() => {
-            if (!videoElement.value) {
-              return null;
-            }
-            const frameRate = props.fmvMeta.fmv_file.frame_rate;
-            const frameNumbers = props.fmvMeta.frame_numbers;
-            const groundFrames = props.fmvMeta.ground_frames;
+onMounted(() => {
+  videoSynchronizer.value = new Cesium.VideoSynchronizer({
+    clock: cesiumViewer.value.clock,
+    element: videoElement.value,
+  });
 
-            const frame = Math.round(videoElement.value.currentTime * frameRate);
-            const index = frameNumbers.indexOf(frame);
-            if (index > -1) {
-              const coords = groundFrames.coordinates[index][0];
+  polygonEntity.value = new Cesium.Entity({
+    polygon: new Cesium.PolygonGraphics({
+      hierarchy: new Cesium.CallbackProperty(() => {
+        if (!videoElement.value) {
+          return null;
+        }
+        const frameRate = props.fmvMeta.fmv_file.frame_rate;
+        const frameNumbers = props.fmvMeta.frame_numbers;
+        const groundFrames = props.fmvMeta.ground_frames;
 
-              const newHierarchy = new Cesium.PolygonHierarchy([
-                Cesium.Cartesian3.fromDegrees(coords[0][0], coords[0][1]),
-                Cesium.Cartesian3.fromDegrees(coords[1][0], coords[1][1]),
-                Cesium.Cartesian3.fromDegrees(coords[2][0], coords[2][1]),
-                Cesium.Cartesian3.fromDegrees(coords[3][0], coords[3][1]),
-              ]);
+        const frame = Math.round(videoElement.value.currentTime * frameRate);
+        const index = frameNumbers.indexOf(frame);
+        if (index > -1) {
+          const coords = groundFrames.coordinates[index][0];
 
-              prevHierarchy.value = newHierarchy;
+          const newHierarchy = new Cesium.PolygonHierarchy([
+            Cesium.Cartesian3.fromDegrees(coords[0][0], coords[0][1]),
+            Cesium.Cartesian3.fromDegrees(coords[1][0], coords[1][1]),
+            Cesium.Cartesian3.fromDegrees(coords[2][0], coords[2][1]),
+            Cesium.Cartesian3.fromDegrees(coords[3][0], coords[3][1]),
+          ]);
 
-              return newHierarchy;
-            }
-            // If the no positional data exists for the current video frame,
-            // use the previous position. If we don't do this, this function
-            // will return `undefined`, which causes Cesium to render nothing
-            // for this frame, causing a flickering effect.
-            return prevHierarchy.value;
-          }, false),
-          material: Cesium.Color.RED,
-        }),
-      });
+          prevHierarchy.value = newHierarchy;
 
-      cesiumViewer.value.entities.add(polygonEntity.value);
-    });
+          return newHierarchy;
+        }
+        // If the no positional data exists for the current video frame,
+        // use the previous position. If we don't do this, this function
+        // will return `undefined`, which causes Cesium to render nothing
+        // for this frame, causing a flickering effect.
+        return prevHierarchy.value;
+      }, false),
+      material: Cesium.Color.RED,
+    }),
+  });
 
-    onUnmounted(() => {
-      // Remove these entities from the Cesium map when the user stops the video -
-      if (videoSynchronizer.value && Cesium.defined(videoSynchronizer.value)) {
-        videoSynchronizer.value.destroy();
-        videoSynchronizer.value = null;
-      }
-      if (polygonEntity.value && Cesium.defined(polygonEntity.value)) {
-        cesiumViewer.value.entities.remove(polygonEntity.value);
-      }
-    });
+  cesiumViewer.value.entities.add(polygonEntity.value);
+});
 
-    return {
-      videoElement,
-    };
-  },
+onUnmounted(() => {
+  // Remove these entities from the Cesium map when the user stops the video -
+  if (videoSynchronizer.value && Cesium.defined(videoSynchronizer.value)) {
+    videoSynchronizer.value.destroy();
+    videoSynchronizer.value = null;
+  }
+  if (polygonEntity.value && Cesium.defined(polygonEntity.value)) {
+    cesiumViewer.value.entities.remove(polygonEntity.value);
+  }
 });
 
 </script>

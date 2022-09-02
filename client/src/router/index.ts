@@ -1,8 +1,8 @@
 import Vue from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
 import AlgorithmView from '@/views/AlgorithmView.vue';
-import Explore from '@/views/Explore.vue';
-import Focus from '@/views/Focus.vue';
+import ExploreView from '@/views/ExploreView.vue';
+import FocusView from '@/views/FocusView.vue';
 
 Vue.use(VueRouter);
 
@@ -14,13 +14,13 @@ const routes: Array<RouteConfig> = [
   {
     name: 'explore',
     path: '/explore',
-    component: Explore,
+    component: ExploreView,
     props: true,
   },
   {
     name: 'focus',
     path: '/focus/:datasetId?',
-    component: Focus,
+    component: FocusView,
     props: true,
   },
   {

@@ -1,6 +1,6 @@
-<script lang="ts">
+<script setup lang="ts">
 import {
-  defineComponent, ref, onMounted, computed, watch, watchEffect,
+  ref, onMounted, computed, watch, watchEffect,
 } from 'vue';
 import filesize from 'filesize';
 
@@ -8,8 +8,6 @@ import { axiosInstance } from '@/api';
 import {
   Algorithm, ChecksumFile, Dataset, Task,
 } from '@/types';
-import UploadDialog from '@/components/UploadDialog.vue';
-import CreateDataset from '@/components/CreateDataset.vue';
 
 const fileTableHeaders = [
   {
@@ -46,221 +44,180 @@ function taskRunning(task: Task) {
   return !['failed', 'success'].includes(task.status);
 }
 
-export default defineComponent({
-  name: 'AlgorithmView',
-  components: {
-    UploadDialog,
-    CreateDataset,
-  },
-  setup() {
-    // /////////////////
-    // Algorithm
-    // /////////////////
-    const runAlgorithmDialog = ref(false);
+// /////////////////
+// Algorithm
+// /////////////////
+const runAlgorithmDialog = ref(false);
 
-    // Datasets for running algorithm
-    const datasetList = ref<Dataset[]>([]);
-    const fetchingDatasetList = ref(false);
-    const datasetToRunOn = ref<Dataset | null>(null);
-    const datasetDialogVisible = ref(false);
-    async function fetchDatasetList() {
-      fetchingDatasetList.value = true;
+// Datasets for running algorithm
+const datasetList = ref<Dataset[]>([]);
+const fetchingDatasetList = ref(false);
+const datasetToRunOn = ref<Dataset | null>(null);
+const datasetDialogVisible = ref(false);
+async function fetchDatasetList() {
+  fetchingDatasetList.value = true;
 
-      try {
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        const res = await axiosInstance.get('datasets/', { params: { include_output_datasets: false } });
-        datasetList.value = res.data.results;
-      } catch (error) {
-        // TODO: Handle
-      }
+  try {
+    const res = await axiosInstance.get('datasets/', { params: { include_output_datasets: false } });
+    datasetList.value = res.data.results;
+  } catch (error) {
+    // TODO: Handle
+  }
 
-      fetchingDatasetList.value = false;
-    }
-    function datasetCreated() {
-      fetchDatasetList();
-      datasetDialogVisible.value = false;
-    }
+  fetchingDatasetList.value = false;
+}
+function datasetCreated() {
+  fetchDatasetList();
+  datasetDialogVisible.value = false;
+}
 
-    // /////////////////
-    // Tasks
-    // /////////////////
-    const tasks = ref<Task[]>([]);
-    const selectedTaskIndex = ref<number | null>(null);
-    const selectedTask = computed(() => (
-      selectedTaskIndex.value !== null ? tasks.value[selectedTaskIndex.value] : null
-    ));
+// /////////////////
+// Tasks
+// /////////////////
+const tasks = ref<Task[]>([]);
+const selectedTaskIndex = ref<number | null>(null);
+const selectedTask = computed(() => (
+  selectedTaskIndex.value !== null ? tasks.value[selectedTaskIndex.value] : null
+));
 
-    async function fetchTasks() {
-      // eslint-disable-next-line @typescript-eslint/camelcase
-      const res1 = await axiosInstance.get('tasks/', { params: { algorithm__pk: 1 } });
-      // eslint-disable-next-line @typescript-eslint/camelcase
-      const res2 = await axiosInstance.get('tasks/', { params: { algorithm__pk: 2 } });
+async function fetchTasks() {
+  const res1 = await axiosInstance.get('tasks/', { params: { algorithm__pk: 1 } });
+  const res2 = await axiosInstance.get('tasks/', { params: { algorithm__pk: 2 } });
 
-      tasks.value = res1.data.results.sort(
-        (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
-      ).concat(res2.data.results.sort(
-        (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
-      ));
+  tasks.value = res1.data.results.sort(
+    (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
+  ).concat(res2.data.results.sort(
+    (a: Algorithm, b: Algorithm) => -a.created.localeCompare(b.created),
+  ));
 
-      // Set default to most recent, if there are any
-      if (tasks.value.length && selectedTaskIndex.value === null) {
-        selectedTaskIndex.value = 0;
-      }
-    }
+  // Set default to most recent, if there are any
+  if (tasks.value.length && selectedTaskIndex.value === null) {
+    selectedTaskIndex.value = 0;
+  }
+}
 
-    // Fetch tasks until all are completed
-    watchEffect(async () => {
-      if (tasks.value.some((task) => taskRunning(task))) {
-        // Wait 5 seconds
-        await new Promise((r) => setTimeout(r, 5000));
+// Fetch tasks until all are completed
+watchEffect(async () => {
+  if (tasks.value.some((task) => taskRunning(task))) {
+    // Wait 5 seconds
+    await new Promise((r) => setTimeout(r, 5000));
 
-        // Fetch tasks again
-        fetchTasks();
-      }
-    });
-
-    function taskStatusIconStyle(task: Task): {icon: string; color: string; class?: string} {
-      switch (task.status) {
-        case 'created':
-        case 'queued':
-          return { icon: 'mdi-pause', color: '' };
-        case 'running':
-          return { icon: 'mdi-autorenew', color: 'primary', class: 'rotate' };
-        case 'success':
-          return { icon: 'mdi-check', color: 'success' };
-        case 'failed':
-          return { icon: 'mdi-close', color: 'error' };
-        default:
-          return { icon: 'mdi-help', color: 'warning' };
-      }
-    }
-
-    // /////////////////
-    // Selected Task
-    // /////////////////
-    const selectedTaskLogs = ref('');
-    async function fetchSelectedTaskLogs() {
-      if (selectedTask.value === null) {
-        return;
-      }
-
-      const res = await axiosInstance.get(`tasks/${selectedTask.value.id}/logs/`);
-      selectedTaskLogs.value = res.data;
-    }
-
-    const selectedTaskFiles = ref<{}[]>([]);
-    async function fetchSelectedTaskOutput() {
-      if (selectedTask.value === null) {
-        return;
-      }
-
-      const res = await axiosInstance.get(`tasks/${selectedTask.value.id}/output/`);
-      selectedTaskFiles.value = res.data.results;
-    }
-
-    const outputDatasetDownloadLink = computed(() => (
-      selectedTask.value
-        ? `${axiosInstance.defaults.baseURL}tasks/${selectedTask.value.id}/output/download`
-        : null
-    ));
-    const selectedTaskInput = ref<ChecksumFile[]>([]);
-    const fetchingSelectedTaskInput = ref(false);
-    async function fetchSelectedTaskInput() {
-      if (selectedTask.value === null) {
-        return;
-      }
-
-      fetchingSelectedTaskInput.value = true;
-      try {
-        const res = await axiosInstance.get(`tasks/${selectedTask.value.id}/input/`);
-        selectedTaskInput.value = res.data.results;
-      } catch (error) {
-        // TODO: Handle
-      }
-
-      fetchingSelectedTaskInput.value = false;
-    }
-
-    // Update input/output/logs on task switch
-    watch(selectedTaskIndex, () => {
-      fetchSelectedTaskLogs();
-      fetchSelectedTaskInput();
-      fetchSelectedTaskOutput();
-    });
-
-    // If selected task is running, fetch output and logs
-    const initialTaskFetch = ref(false);
-    watch(tasks, () => {
-      // Ignore the first change, it's handled elsewhere
-      if (!initialTaskFetch.value) {
-        initialTaskFetch.value = true;
-        return;
-      }
-
-      // Fetch selected task logs/output if running
-      if (selectedTask.value && taskRunning(selectedTask.value)) {
-        Promise.all([
-          fetchSelectedTaskLogs(),
-          fetchSelectedTaskOutput(),
-        ]);
-      }
-    });
-
-    // /////////////////
-    // Misc
-    // /////////////////
-    async function runAlgorithm() {
-      if (datasetToRunOn.value === null) {
-        throw new Error('Attempted to run algorithm without an input dataset!');
-      }
-
-      const res = await axiosInstance.post('danesfield/run/', {
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        input_dataset: datasetToRunOn.value.id,
-      });
-
-      if (res.status === 200) {
-        fetchTasks();
-      }
-
-      runAlgorithmDialog.value = false;
-    }
-
-    onMounted(() => {
-      fetchTasks();
-      fetchDatasetList();
-    });
-
-    return {
-      filesize,
-
-      datasetTableHeaders,
-      fetchDatasetList,
-      fetchingDatasetList,
-      datasetList,
-      datasetToRunOn,
-      datasetDialogVisible,
-      datasetCreated,
-
-      runAlgorithmDialog,
-
-      tasks,
-      selectedTask,
-      selectedTaskIndex,
-      taskStatusIconStyle,
-
-      fileTableHeaders,
-      selectedTaskInput,
-      fetchingSelectedTaskInput,
-      fetchSelectedTaskInput,
-      selectedTaskLogs,
-      selectedTaskFiles,
-      outputDatasetDownloadLink,
-
-      runAlgorithm,
-    };
-  },
+    // Fetch tasks again
+    fetchTasks();
+  }
 });
+
+function taskStatusIconStyle(task: Task): {icon: string; color: string; class?: string} {
+  switch (task.status) {
+    case 'created':
+    case 'queued':
+      return { icon: 'mdi-pause', color: '' };
+    case 'running':
+      return { icon: 'mdi-autorenew', color: 'primary', class: 'rotate' };
+    case 'success':
+      return { icon: 'mdi-check', color: 'success' };
+    case 'failed':
+      return { icon: 'mdi-close', color: 'error' };
+    default:
+      return { icon: 'mdi-help', color: 'warning' };
+  }
+}
+
+// /////////////////
+// Selected Task
+// /////////////////
+const selectedTaskLogs = ref('');
+async function fetchSelectedTaskLogs() {
+  if (selectedTask.value === null) {
+    return;
+  }
+
+  const res = await axiosInstance.get(`tasks/${selectedTask.value.id}/logs/`);
+  selectedTaskLogs.value = res.data;
+}
+
+const selectedTaskFiles = ref<{}[]>([]);
+async function fetchSelectedTaskOutput() {
+  if (selectedTask.value === null) {
+    return;
+  }
+
+  const res = await axiosInstance.get(`tasks/${selectedTask.value.id}/output/`);
+  selectedTaskFiles.value = res.data.results;
+}
+
+const outputDatasetDownloadLink = computed(() => (
+  selectedTask.value
+    ? `${axiosInstance.defaults.baseURL}tasks/${selectedTask.value.id}/output/download`
+    : null
+));
+const selectedTaskInput = ref<ChecksumFile[]>([]);
+const fetchingSelectedTaskInput = ref(false);
+async function fetchSelectedTaskInput() {
+  if (selectedTask.value === null) {
+    return;
+  }
+
+  fetchingSelectedTaskInput.value = true;
+  try {
+    const res = await axiosInstance.get(`tasks/${selectedTask.value.id}/input/`);
+    selectedTaskInput.value = res.data.results;
+  } catch (error) {
+    // TODO: Handle
+  }
+
+  fetchingSelectedTaskInput.value = false;
+}
+
+// Update input/output/logs on task switch
+watch(selectedTaskIndex, () => {
+  fetchSelectedTaskLogs();
+  fetchSelectedTaskInput();
+  fetchSelectedTaskOutput();
+});
+
+// If selected task is running, fetch output and logs
+const initialTaskFetch = ref(false);
+watch(tasks, () => {
+  // Ignore the first change, it's handled elsewhere
+  if (!initialTaskFetch.value) {
+    initialTaskFetch.value = true;
+    return;
+  }
+
+  // Fetch selected task logs/output if running
+  if (selectedTask.value && taskRunning(selectedTask.value)) {
+    Promise.all([
+      fetchSelectedTaskLogs(),
+      fetchSelectedTaskOutput(),
+    ]);
+  }
+});
+
+// /////////////////
+// Misc
+// /////////////////
+async function runAlgorithm() {
+  if (datasetToRunOn.value === null) {
+    throw new Error('Attempted to run algorithm without an input dataset!');
+  }
+
+  const res = await axiosInstance.post('danesfield/run/', {
+    input_dataset: datasetToRunOn.value.id,
+  });
+
+  if (res.status === 200) {
+    fetchTasks();
+  }
+
+  runAlgorithmDialog.value = false;
+}
+
+onMounted(() => {
+  fetchTasks();
+  fetchDatasetList();
+});
+
 </script>
 
 <template>
@@ -272,7 +229,7 @@ export default defineComponent({
     <v-row no-gutters>
       <v-col>
         <v-dialog v-model="datasetDialogVisible">
-          <template v-slot:activator="{ on }">
+          <template #activator="{ on }">
             <v-btn v-on="on">
               New Dataset
 
@@ -304,7 +261,7 @@ export default defineComponent({
                     v-model="runAlgorithmDialog"
                     width="50vw"
                   >
-                    <template v-slot:activator="{ on }">
+                    <template #activator="{ on }">
                       <v-btn
                         class="my-1"
                         v-on="on"
@@ -328,12 +285,12 @@ export default defineComponent({
                         @input="datasetToRunOn = $event[0] || null"
                       >
                         <!-- eslint-disable-next-line vue/valid-v-slot -->
-                        <template v-slot:item.files="{ item }">
+                        <template #item.files="{ item }">
                           {{ item.files.length }}
                         </template>
 
                         <!-- eslint-disable-next-line vue/valid-v-slot -->
-                        <template v-slot:item.size="{ item }">
+                        <template #item.size="{ item }">
                           {{ filesize(item.size) }}
                         </template>
                       </v-data-table>
@@ -405,11 +362,11 @@ export default defineComponent({
                 :loading="fetchingSelectedTaskInput"
               >
                 <!-- eslint-disable-next-line vue/valid-v-slot -->
-                <template v-slot:item.type="{ item }">
+                <template #item.type="{ item }">
                   {{ item.type === 1 ? 'File' : 'Url' }}
                 </template>
                 <!-- eslint-disable-next-line vue/valid-v-slot -->
-                <template v-slot:item.download_url="{ item }">
+                <template #item.download_url="{ item }">
                   <a
                     :href="item.download_url"
                     target="_blank"
@@ -474,11 +431,11 @@ export default defineComponent({
                   height="100%"
                 >
                   <!-- eslint-disable-next-line vue/valid-v-slot -->
-                  <template v-slot:item.type="{ item }">
+                  <template #item.type="{ item }">
                     {{ item.type === 1 ? 'File' : 'Url' }}
                   </template>
                   <!-- eslint-disable-next-line vue/valid-v-slot -->
-                  <template v-slot:item.download_url="{ item }">
+                  <template #item.download_url="{ item }">
                     <a
                       :href="item.download_url"
                       target="_blank"

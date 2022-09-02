@@ -1,14 +1,13 @@
 import { AxiosResponse } from 'axios';
 import S3FileFieldClient from 'django-s3-file-field';
 
+import { computed } from 'vue';
 import { axiosInstance } from '@/api';
 import { ChecksumFile } from '@/types';
-import { computed } from 'vue';
 
 export const s3ffClient = computed(() => new S3FileFieldClient({
   baseUrl: process.env.VUE_APP_S3FF_BASE_URL,
   // TODO: figure out why this fails type checking
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   apiConfig: axiosInstance.defaults,
 }));

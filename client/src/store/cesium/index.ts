@@ -7,7 +7,6 @@ RequestScheduler.throttleRequests = false;
 
 export const cesiumViewer = ref();
 
-/* eslint-disable @typescript-eslint/camelcase */
 const HUERISTIC_STATUS_DATA = {
   positive_annotated: '#000000',
   positive_partial: '#000000',
@@ -18,7 +17,6 @@ const HUERISTIC_STATUS_DATA = {
   negative_unbounded: '#FF1493', // deeppink
   ignore: '#FFA07A', // lightsalmon
 };
-/* eslint-enable @typescript-eslint/camelcase */
 
 export const addGeojson = async (geojson: GeoJSON, key: string): Promise<GeoJsonDataSource> => {
   const dataSource = await GeoJsonDataSource.load(geojson);
@@ -29,7 +27,9 @@ export const addGeojson = async (geojson: GeoJSON, key: string): Promise<GeoJson
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   source.entities.values.forEach(async (entity: {polygon: any; properties: any}) => {
     let color;
+    // eslint-disable-next-line no-underscore-dangle
     if (entity.properties?.status && entity.properties.status?._value in HUERISTIC_STATUS_DATA) {
+      // eslint-disable-next-line no-underscore-dangle
       const status = entity.properties.status?._value as keyof typeof HUERISTIC_STATUS_DATA;
       const colorV = HUERISTIC_STATUS_DATA[status];
       color = Color.fromCssColorString(colorV).withAlpha(0.25);

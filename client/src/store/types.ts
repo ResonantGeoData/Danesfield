@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+
 export type RGDResult = {
   spatial_id: number;
   acquisition_date: string | null;

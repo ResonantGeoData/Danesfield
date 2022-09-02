@@ -44,7 +44,6 @@ export async function rgdSearch(
     geometry = q;
   }
   const response = await axiosInstance.get('rgd/search', {
-    /* eslint-disable @typescript-eslint/camelcase */
     params: {
       limit,
       offset,
@@ -59,7 +58,7 @@ export async function rgdSearch(
       time_of_day_before: endTime,
       collections,
     },
-    /* eslint-enable @typescript-eslint/camelcase */
+
   });
   return response;
 }
