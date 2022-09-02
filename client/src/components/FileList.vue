@@ -47,6 +47,15 @@
                 </v-icon>
               </v-btn>
             </td>
+            <td style="width: 30%;">
+              <v-select
+                :items="shaderOptions"
+                item-text="title"
+                label="Shader"
+                outlined
+                @change="updateShader(tileset.spatial_id, $event)"
+              />
+            </td>
           </tr>
           <tr
             v-for="raster in rasters"
@@ -136,14 +145,58 @@
 
 <script setup lang="ts">
 import { ref, PropType, onMounted } from 'vue';
-import * as Cesium from 'cesium';
 import { axiosInstance } from '@/api';
 import { addVisibleOverlay, visibleOverlayIds } from '@/store/cesium/layers';
 import { cesiumViewer } from '@/store/cesium';
+import * as Cesium from 'cesium';
 import { addFootprint, removeFootprint, visibleFootprints } from '@/store/cesium/footprints';
 import { FMVMeta, RasterMeta, Tiles3DMeta } from '@/types';
 import { renderFlightPath } from '@/utils/cesium';
 import FMVViewer from './FMVViewer.vue';
+
+const shaderOptions: {
+  title: string;
+  propertyName?: string;
+  sourceMin: number;
+  sourceMax: number;
+}[] = [
+  {
+    title: 'Default Shading',
+    propertyName: undefined,
+    sourceMin: 0.0,
+    sourceMax: 1.0,
+  },
+  {
+    title: 'C0',
+    propertyName: 'c0',
+    sourceMin: 75.0,
+    sourceMax: 279.0,
+  },
+  {
+    title: 'C1',
+    propertyName: 'c1',
+    sourceMin: 0.1,
+    sourceMax: 5.26,
+  },
+  {
+    title: 'C2',
+    propertyName: 'c2',
+    sourceMin: 1.8,
+    sourceMax: 10.0,
+  },
+  {
+    title: 'C3',
+    propertyName: 'c3',
+    sourceMin: 1.8,
+    sourceMax: 10.0,
+  },
+  {
+    title: 'C4',
+    propertyName: 'c4',
+    sourceMin: 1.8,
+    sourceMax: 10.0,
+  },
+];
 
 const props = defineProps({
   datasetId: {
@@ -171,9 +224,7 @@ const props = defineProps({
 const rasters = ref<Record<number, RasterMeta>>({});
 const tiles3d = ref<Record<number, Tiles3DMeta>>({});
 const fmvs = ref<Record<number, FMVMeta>>({});
-
 const fmvBeingViewed = ref<FMVMeta | null>(null);
-
 const loading = ref(true);
 
 function rasterIsVisible(rasterId: number) {
@@ -338,5 +389,48 @@ onMounted(async () => {
 
   loading.value = false;
 });
+
+function updateShader(tiles3dId: number, shaderTitle: string) {
+  // Create a custom (fragment) shader that accesses the metadata value with the
+  // given property name, normalizes it to a value in [0,1] based on the given
+  // source range, and uses that value as the brightness for the fragment.
+  function createShader(propertyName: string | undefined, sourceMin: number, sourceMax: number) {
+    if (propertyName === undefined) {
+      return undefined;
+    }
+    const shader = new Cesium.CustomShader({
+      fragmentShaderText: `
+            void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
+            {
+              float value = float(fsInput.metadata.${propertyName});
+              float range = float(${sourceMax}) - float(${sourceMin});
+              float brightness = (value - float(${sourceMin})) / range;
+              material.diffuse = vec3(brightness);
+            }
+          `,
+    });
+    return shader;
+  }
+
+  if (tiles3dIsVisible(tiles3dId)) {
+    const current = tiles3d.value[tiles3dId];
+    const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
+    const { scene } = cesiumViewer.value;
+    const { primitives } = scene;
+
+    const selectedShader = shaderOptions.find((shader) => shader.title === shaderTitle);
+
+    // Check if this tileset is already downloaded. If it is, show/hide it and return.
+    for (let i = 0; i < primitives.length; i += 1) {
+      const currentTileset = primitives.get(i);
+      // eslint-disable-next-line no-underscore-dangle
+      if (currentTileset._url === tilesetURL) {
+        currentTileset.customShader = createShader(
+          selectedShader!.propertyName, selectedShader!.sourceMin, selectedShader!.sourceMax,
+        );
+      }
+    }
+  }
+}
 
 </script>
