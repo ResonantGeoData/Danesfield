@@ -14,6 +14,7 @@
     "@turf/centroid": "^6.5.0",
     "axios": "^0.21.1",
     "cesium": "^1.97.0",
+    "colormap": "^2.3.2",
     "django-s3-file-field": "^0.3.0",
     "filesize": "^9.0.11",
     "vue": "^2.7.10",
@@ -21,6 +22,7 @@
     "vuetify": "^2.6.9"
   },
   "devDependencies": {
+    "@types/colormap": "^2.3.1",
     "@types/geojson": "^7946.0.10",
     "@types/jest": "^29.0.0",
     "@typescript-eslint/eslint-plugin": "^5.36.1",

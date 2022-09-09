@@ -14,7 +14,8 @@
     "types": [
       "webpack-env",
       "jest",
-      "cesium"
+      "cesium",
+      "colormap"
     ],
     "paths": {
       "@/*": [

@@ -145,57 +145,41 @@
 
 <script setup lang="ts">
 import { ref, PropType, onMounted } from 'vue';
+import * as Cesium from 'cesium';
 import { axiosInstance } from '@/api';
 import { addVisibleOverlay, visibleOverlayIds } from '@/store/cesium/layers';
 import { cesiumViewer } from '@/store/cesium';
-import * as Cesium from 'cesium';
 import { addFootprint, removeFootprint, visibleFootprints } from '@/store/cesium/footprints';
 import { FMVMeta, RasterMeta, Tiles3DMeta } from '@/types';
-import { renderFlightPath } from '@/utils/cesium';
+import { renderFlightPath, createShader } from '@/utils/cesium';
 import FMVViewer from './FMVViewer.vue';
+
+function createShaderOption(
+  title: string,
+  propertyName: string | undefined,
+  sourceMin: number,
+  sourceMax: number,
+) {
+  return {
+    title, propertyName, sourceMin, sourceMax,
+  };
+}
 
 const shaderOptions: {
   title: string;
   propertyName?: string;
-  sourceMin: number;
-  sourceMax: number;
+  sourceMin?: number;
+  sourceMax?: number;
 }[] = [
-  {
-    title: 'Default Shading',
-    propertyName: undefined,
-    sourceMin: 0.0,
-    sourceMax: 1.0,
-  },
-  {
-    title: 'C0',
-    propertyName: 'c0',
-    sourceMin: 75.0,
-    sourceMax: 279.0,
-  },
-  {
-    title: 'C1',
-    propertyName: 'c1',
-    sourceMin: 0.1,
-    sourceMax: 5.26,
-  },
-  {
-    title: 'C2',
-    propertyName: 'c2',
-    sourceMin: 1.8,
-    sourceMax: 10.0,
-  },
-  {
-    title: 'C3',
-    propertyName: 'c3',
-    sourceMin: 1.8,
-    sourceMax: 10.0,
-  },
-  {
-    title: 'C4',
-    propertyName: 'c4',
-    sourceMin: 1.8,
-    sourceMax: 10.0,
-  },
+  createShaderOption('Default Shading', undefined, 0.0, 1.0),
+  createShaderOption('C 0_0', 'c0_0', 0.04, 0.18),
+  createShaderOption('C 1_0', 'c1_0', -0.03, 0.19),
+  createShaderOption('C 1_1', 'c1_1', 0.07, 0.32),
+  createShaderOption('C 2_0', 'c2_0', -0.72, 0.89),
+  createShaderOption('C 2_1', 'c2_1', -1.06, 1.06),
+  createShaderOption('C 2_2', 'c2_2', 1.41, 2.25),
+  { title: 'LE90' },
+  { title: 'CE90' },
 ];
 
 const props = defineProps({
@@ -391,27 +375,6 @@ onMounted(async () => {
 });
 
 function updateShader(tiles3dId: number, shaderTitle: string) {
-  // Create a custom (fragment) shader that accesses the metadata value with the
-  // given property name, normalizes it to a value in [0,1] based on the given
-  // source range, and uses that value as the brightness for the fragment.
-  function createShader(propertyName: string | undefined, sourceMin: number, sourceMax: number) {
-    if (propertyName === undefined) {
-      return undefined;
-    }
-    const shader = new Cesium.CustomShader({
-      fragmentShaderText: `
-            void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
-            {
-              float value = float(fsInput.metadata.${propertyName});
-              float range = float(${sourceMax}) - float(${sourceMin});
-              float brightness = (value - float(${sourceMin})) / range;
-              material.diffuse = vec3(brightness);
-            }
-          `,
-    });
-    return shader;
-  }
-
   if (tiles3dIsVisible(tiles3dId)) {
     const current = tiles3d.value[tiles3dId];
     const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
@@ -426,7 +389,10 @@ function updateShader(tiles3dId: number, shaderTitle: string) {
       // eslint-disable-next-line no-underscore-dangle
       if (currentTileset._url === tilesetURL) {
         currentTileset.customShader = createShader(
-          selectedShader!.propertyName, selectedShader!.sourceMin, selectedShader!.sourceMax,
+          shaderTitle,
+          selectedShader?.propertyName,
+          selectedShader?.sourceMin,
+          selectedShader?.sourceMax,
         );
       }
     }
