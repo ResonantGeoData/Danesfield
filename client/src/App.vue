@@ -76,7 +76,7 @@ function onTabChange() {
         {{ loginText }}
       </v-btn>
     </v-app-bar>
-    <v-main>
+    <v-main style="height: 80vh">
       <router-view />
     </v-main>
   </v-app>

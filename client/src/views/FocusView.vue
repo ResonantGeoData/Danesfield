@@ -8,7 +8,8 @@
     </v-col>
     <v-col
       cols="9"
-      class="d-flex justify-center align-center"
+      class="d-flex justify-center"
+      style="height: 100%;"
     >
       <CesiumViewer />
     </v-col>
