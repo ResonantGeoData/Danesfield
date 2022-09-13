@@ -257,7 +257,7 @@ export function createShader(
   shaderTitle: string,
   propertyName: string | undefined,
   sourceMin: number | undefined,
-  sourceMax: number | undefined,
+  sourceRange: number | undefined,
 ) {
   // Lookup table for CE calculation
   const RLookupTable = [
@@ -372,7 +372,7 @@ export function createShader(
       void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
       {
         float value = float(fsInput.metadata.${propertyName});
-        float range = float(${sourceMax}) - float(${sourceMin});
+        float range = ${sourceRange};
         float brightness = (value - float(${sourceMin})) / range;
         material.diffuse = vec3(brightness);
       }
