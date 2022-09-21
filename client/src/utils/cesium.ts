@@ -305,9 +305,11 @@ export function createShader(
         float lookupTable[${RLookupTable.length}];
         ${RLookupTable.map((value, i) => `lookupTable[${i}] = ${value};`).join('\n')}
         int ndx = int(${RLookupTable.length - 1}.0 * r);
-        for (int i = 0; i < ${RLookupTable.length}; i++)
-          if (i == ndx)
+        for (int i = 0; i < ${RLookupTable.length}; i++) {
+          if (i == ndx) {
             return lookupTable[i];
+          }
+        }
         return 0.0;
       }
 
@@ -336,9 +338,11 @@ export function createShader(
         // The version of GLSL that Cesium uses doesn't support indexing arrays with variables.
         // But, the compiler will unroll constant-length loops, so we can use one here
         // to index the array with a variable.
-        for (int i = 0; i < ${COLOR_MAP.length}; i++)
-          if (i == colormapIndex)
+        for (int i = 0; i < ${COLOR_MAP.length}; i++) {
+          if (i == colormapIndex) {
             material.diffuse = colormap[i];
+          }
+        }
       }
     `;
   } else if (shaderTitle === 'LE90') {
@@ -370,10 +374,12 @@ export function createShader(
         // The version of GLSL that Cesium uses doesn't support indexing arrays with variables.
         // But, the compiler will unroll constant-length loops, so we can use one here
         // to index the array with a variable.
-        for (int i = 0; i < ${COLOR_MAP.length}; i++)
-            if (i == colormapIndex)
+        for (int i = 0; i < ${COLOR_MAP.length}; i++) {
+            if (i == colormapIndex) {
               material.diffuse = colormap[i];
               return;
+            }
+        }
 
         // Make the shader return black to indicate failure if the index wasn't computed properly
         material.diffuse = vec3(0, 0, 0);
