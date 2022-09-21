@@ -313,9 +313,9 @@ export function createShader(
         return 0.0;
       }
 
-      void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
+      float CE(float m0_0, float m0_1, float m1_0, float m1_1)
       {
-        vec2 eigenvalues = eigenValues2x2(fsInput.metadata.c0_0, fsInput.metadata.c1_0, fsInput.metadata.c1_0, fsInput.metadata.c1_1);
+        vec2 eigenvalues = eigenValues2x2(m0_0, m0_1, m1_0, m1_1);
 
         float vmax = eigenvalues[0];
         float vmin = eigenvalues[1];
@@ -325,15 +325,20 @@ export function createShader(
 
         float r = smin / smax;
 
-        float CE = R(r) * smax;
+        return R(r) * smax;
+      }
 
+      void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
+      {
         // Generate colormap
         vec3 colormap[${COLOR_MAP.length}];
         ${COLOR_MAP.map((color: string[], i: number) => `colormap[${i}] = vec3(${color.join(',')})`).join(';\n')};
 
+        float ce = CE(fsInput.metadata.c0_0, fsInput.metadata.c1_0, fsInput.metadata.c1_0, fsInput.metadata.c1_1);
+
         float range = 2.5; // TODO: dynamically calculate this?
 
-        int colormapIndex = int(((CE) / range) * 100.0);
+        int colormapIndex = int(((ce) / range) * 100.0);
 
         // The version of GLSL that Cesium uses doesn't support indexing arrays with variables.
         // But, the compiler will unroll constant-length loops, so we can use one here
