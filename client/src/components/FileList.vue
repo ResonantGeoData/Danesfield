@@ -172,14 +172,14 @@ const shaderOptions: {
   sourceMax?: number;
 }[] = [
   createShaderOption('Default Shading', undefined, 0.0, 1.0),
-  createShaderOption('C 0_0', 'c0_0', 0.053, 0.069),
-  createShaderOption('C 1_0', 'c1_0', -0.035, 0.115),
-  createShaderOption('C 1_1', 'c1_1', 0.082, 0.28),
-  createShaderOption('C 2_0', 'c2_0', -0.34, 0.45),
-  createShaderOption('C 2_1', 'c2_1', -1.05, 0.84),
-  createShaderOption('C 2_2', 'c2_2', 1.67, 1.82),
-  { title: 'LE90' },
-  { title: 'CE90' },
+  createShaderOption('C 0_0', 'c0_0', 0.043, 0.181),
+  createShaderOption('C 1_0', 'c1_0', -0.036, 0.196),
+  createShaderOption('C 1_1', 'c1_1', 0.074, 0.324),
+  createShaderOption('C 2_0', 'c2_0', -0.072, 0.897),
+  createShaderOption('C 2_1', 'c2_1', -1.06, 0.883),
+  createShaderOption('C 2_2', 'c2_2', 1.41, 2.259),
+  createShaderOption('LE90', undefined, 1.41, 2.259),
+  createShaderOption('CE90', undefined, 1.41, 2.259),
 ];
 
 const props = defineProps({
