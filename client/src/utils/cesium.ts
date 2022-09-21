@@ -345,16 +345,27 @@ export function createShader(
     fragmentShaderText = `
       void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
       {
-        float c2_2 = fsInput.metadata.c2_2;
-        float LE = 1.6499 * sqrt(c2_2);
-
         // Generate colormap
         vec3 colormap[${COLOR_MAP.length}];
         ${COLOR_MAP.map((color: string[], i: number) => `colormap[${i}] = vec3(${color.join(',')})`).join(';\n')};
 
-        float range = 2.5; // TODO: dynamically calculate this?
+        // Read byte value of c2_2
+        float byte2_2 = fsInput.metadata.c2_2;
+        // Compute actual c2_2 value
+        float c2_2 = byte2_2 / 255.0 * ${sourceRange} + ${sourceMin};
 
-        int colormapIndex = int(((LE) / range) * 100.0);
+        // Calculate minimum and maximum LE values
+        float min = 1.6499 * sqrt(${sourceMin});
+        float max = 1.6499 * sqrt(${sourceMin} + ${sourceRange});
+
+        // Compute actual LE value
+        float LE = 1.6499 * sqrt(c2_2);
+
+        // Normalize the LE value to a [0, 1] scale
+        float normalized_0_1 = (LE - min) / (max - min);
+
+        // Convert the normalized LE value into an index for the colormap array
+        int colormapIndex = int(normalized_0_1 * 100.0);
 
         // The version of GLSL that Cesium uses doesn't support indexing arrays with variables.
         // But, the compiler will unroll constant-length loops, so we can use one here
@@ -362,6 +373,10 @@ export function createShader(
         for (int i = 0; i < ${COLOR_MAP.length}; i++)
             if (i == colormapIndex)
               material.diffuse = colormap[i];
+              return;
+
+        // Make the shader return black to indicate failure if the index wasn't computed properly
+        material.diffuse = vec3(0, 0, 0);
       }
     `;
   } else {
