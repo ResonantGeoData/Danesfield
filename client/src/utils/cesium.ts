@@ -243,7 +243,7 @@ export function renderFlightPath(id: number, flightData: number[][]): Cesium.Ent
 // Get color map
 const COLOR_MAP = colormap({
   colormap: 'plasma',
-  nshades: 100,
+  nshades: 101,
   format: 'float',
   alpha: 1,
 }).map((color: number[]) => {
@@ -353,10 +353,7 @@ export function createShader(
         vec3 colormap[${COLOR_MAP.length}];
         ${COLOR_MAP.map((color: string[], i: number) => `colormap[${i}] = vec3(${color.join(',')})`).join(';\n')};
 
-        // Read byte value of c2_2
-        float byte2_2 = fsInput.metadata.c2_2;
-        // Compute actual c2_2 value
-        float c2_2 = byte2_2 / 255.0 * ${sourceRange} + ${sourceMin};
+        float c2_2 = fsInput.metadata.c2_2;
 
         // Calculate minimum and maximum LE values
         float min = 1.6499 * sqrt(${sourceMin});
