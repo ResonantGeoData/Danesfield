@@ -244,7 +244,7 @@ function displayColorBar(min: number, max: number, colorMap: number[][]) {
   const canvas = document.getElementById('canvas') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-  const gradient = ctx.createLinearGradient(0, 0, 200, 0);
+  const gradient = ctx.createLinearGradient(0, 0, 300, 0);
 
   colorMap.forEach((colors: number[], i) => {
     // Convert color from array of three floats to `rgb(r,g,b)` format
@@ -254,11 +254,14 @@ function displayColorBar(min: number, max: number, colorMap: number[][]) {
 
   // Set the fill style and draw a rectangle
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 200, 30);
+  ctx.fillRect(0, 0, 300, 30);
+  ctx.font = '16px Roboto';
 
+  ctx.fillStyle = '#000000';
   // Draw min and max values at opposite ends of the color bar
-  ctx.strokeText(parseFloat(min.toString()).toFixed(2), 0, 40);
-  ctx.strokeText(parseFloat(max.toString()).toFixed(2), 180, 40);
+  ctx.fillText(parseFloat(min.toString()).toFixed(2), 0, 50);
+  ctx.fillText(parseFloat(((max + min) / 2).toString()).toFixed(2), 265 / 2, 50);
+  ctx.fillText(parseFloat(max.toString()).toFixed(2), 265, 50);
 }
 
 function hideColorBar() {
