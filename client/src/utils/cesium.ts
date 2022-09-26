@@ -374,6 +374,10 @@ export function createShader(
         // Actual CE value
         float ce = CE(fsInput.metadata.c0_0, fsInput.metadata.c1_0, fsInput.metadata.c1_0, fsInput.metadata.c1_1);
 
+        if (ce > max) {
+          ce = max;
+        }
+
         // Normalize the CE value to a [0, 1] scale
         float normalized_0_1 = (ce - min) / (max - min);
 
@@ -410,6 +414,10 @@ export function createShader(
 
         // Compute actual LE value
         float LE = 1.6499 * sqrt(c2_2);
+
+        if (LE > max) {
+          LE = max;
+        }
 
         // Normalize the LE value to a [0, 1] scale
         float normalized_0_1 = (LE - min) / (max - min);
