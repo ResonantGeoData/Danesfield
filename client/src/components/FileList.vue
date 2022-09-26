@@ -136,6 +136,10 @@
         </tbody>
       </template>
     </v-simple-table>
+    <canvas
+      id="canvas"
+      class="mx-3 justify-end"
+    />
     <FMVViewer
       v-if="fmvBeingViewed"
       :fmv-meta="fmvBeingViewed"

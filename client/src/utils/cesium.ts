@@ -256,6 +256,33 @@ const COLOR_MAP = colormap({
   return newColor;
 });
 
+function displayColorBar(min: number, max: number) {
+  const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+
+  const gradient = ctx.createLinearGradient(0, 0, 200, 0);
+
+  COLOR_MAP.forEach((colors: number[], i) => {
+    // Convert color from array of three floats to `rgb(r,g,b)` format
+    const color = `rgb(${colors.map((c: number) => c * 255).join(',')})`;
+    gradient.addColorStop(i / 100, color);
+  });
+
+  // Set the fill style and draw a rectangle
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 200, 30);
+
+  // Draw min and max values at opposite ends of the color bar
+  ctx.strokeText(parseFloat(min.toString()).toFixed(2), 0, 40);
+  ctx.strokeText(parseFloat(max.toString()).toFixed(2), 180, 40);
+}
+
+function hideColorBar() {
+  const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
 export function createShader(
   shaderTitle: string,
   propertyName: string | undefined,
@@ -287,10 +314,13 @@ export function createShader(
     2.1460,
   ];
 
+  hideColorBar();
+
   // GLSL code for Cesium to generate shader
   let fragmentShaderText;
 
   if (shaderTitle === 'CE90') {
+    displayColorBar(sourceMin, sourceMin + sourceRange);
     fragmentShaderText = `
       vec2 eigenValues2x2(float m0_0, float m0_1, float m1_0, float m1_1)
       {
@@ -364,6 +394,7 @@ export function createShader(
       }
     `;
   } else if (shaderTitle === 'LE90') {
+    displayColorBar(sourceMin, sourceMin + sourceRange);
     fragmentShaderText = `
       void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
       {
