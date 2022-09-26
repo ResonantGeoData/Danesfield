@@ -106,12 +106,13 @@ watchEffect(() => {
 </script>
 
 <template>
-  <!-- <div class="text-center"> -->
   <v-menu
     v-model="menu"
     :close-on-content-click="false"
     :nudge-width="200"
-    offset-x
+    offset-y
+    bottom
+    left
   >
     <template #activator="{ on, attrs }">
       <v-btn
@@ -148,12 +149,11 @@ watchEffect(() => {
         <v-list-item>
           <canvas
             id="canvas"
-            :style="`${shader === 'Default' ? 'display: none' : ''}`"
-            class="mx-3 justify-end"
+            :style="`display: ${shader === 'Default' ? 'none' : 'block'};`"
+            class="mx-3 justify-center"
           />
         </v-list-item>
       </v-list>
     </v-card>
   </v-menu>
-  <!-- </div> -->
 </template>
