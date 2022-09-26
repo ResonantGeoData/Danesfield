@@ -93,6 +93,7 @@ watchEffect(() => {
     // eslint-disable-next-line no-underscore-dangle
     if (currentTileset._url === tilesetURL) {
       currentTileset.customShader = createShader(
+        props.tiles3dId,
         shader.value,
         selectedShader?.propertyName,
         selectedShader.sourceMin,
@@ -148,7 +149,7 @@ watchEffect(() => {
 
         <v-list-item>
           <canvas
-            id="canvas"
+            :id="`canvas-${tiles3dId}`"
             :style="`display: ${shader === 'Default' ? 'none' : 'block'};`"
             class="mx-3 justify-center"
           />

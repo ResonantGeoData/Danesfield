@@ -240,8 +240,8 @@ export function renderFlightPath(id: number, flightData: number[][]): Cesium.Ent
   return airplaneEntity;
 }
 
-function displayColorBar(min: number, max: number, colorMap: number[][]) {
-  const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+function displayColorBar(tiles3dId: number, min: number, max: number, colorMap: number[][]) {
+  const canvas = document.getElementById(`canvas-${tiles3dId}`) as HTMLCanvasElement;
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
   const gradient = ctx.createLinearGradient(0, 0, 300, 0);
@@ -264,13 +264,14 @@ function displayColorBar(min: number, max: number, colorMap: number[][]) {
   ctx.fillText(parseFloat(max.toString()).toFixed(2), 265, 50);
 }
 
-function hideColorBar() {
-  const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+function hideColorBar(tiles3dId: number) {
+  const canvas = document.getElementById(`canvas-${tiles3dId}`) as HTMLCanvasElement;
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 export function createShader(
+  tiles3dId: number,
   shaderTitle: string,
   propertyName: string | undefined,
   sourceMin: number,
@@ -318,7 +319,7 @@ export function createShader(
     2.1460,
   ];
 
-  hideColorBar();
+  hideColorBar(tiles3dId);
 
   // GLSL code for Cesium to generate shader
   let fragmentShaderText;
@@ -459,7 +460,7 @@ export function createShader(
     return undefined;
   }
 
-  displayColorBar(sourceMin, sourceMin + sourceRange, colorMap);
+  displayColorBar(tiles3dId, sourceMin, sourceMin + sourceRange, colorMap);
 
   return new Cesium.CustomShader({ fragmentShaderText });
 }
