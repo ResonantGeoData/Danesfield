@@ -53,7 +53,6 @@ onMounted(async () => {
 <style>
 #cesiumContainer{
   width: 100% !important;
-  height: calc(100vh - 100px) !important;
   cursor: grab;
 }
 #cesiumContainer.draw-mode{
