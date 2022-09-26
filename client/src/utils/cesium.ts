@@ -246,7 +246,10 @@ const COLOR_MAP = colormap({
   nshades: 101,
   format: 'float',
   alpha: 1,
-}).map((color: number[]) => {
+}).map((color: number[], i: number) => {
+  if (i === 0) {
+    return [0, 0, 0];
+  }
   const newColor = JSON.parse(JSON.stringify(color));
   // remove the alpha value
   newColor.pop();
