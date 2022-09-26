@@ -178,8 +178,8 @@ const shaderOptions: {
   createShaderOption('C 2_0', 'c2_0', -0.072, 0.897),
   createShaderOption('C 2_1', 'c2_1', -1.06, 0.883),
   createShaderOption('C 2_2', 'c2_2', 1.41, 2.259),
-  createShaderOption('LE90', undefined, 1.41, 2.259),
-  createShaderOption('CE90', undefined, 1.41, 2.259),
+  createShaderOption('LE90', undefined, 1.959, 1.201),
+  createShaderOption('CE90', undefined, 0.531, 0.689),
 ];
 
 const props = defineProps({

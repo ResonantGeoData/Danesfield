@@ -256,8 +256,8 @@ const COLOR_MAP = colormap({
 export function createShader(
   shaderTitle: string,
   propertyName: string | undefined,
-  sourceMin: number | undefined,
-  sourceRange: number | undefined,
+  sourceMin: number,
+  sourceRange: number,
 ) {
   // Lookup table for CE calculation
   const RLookupTable = [
@@ -334,11 +334,17 @@ export function createShader(
         vec3 colormap[${COLOR_MAP.length}];
         ${COLOR_MAP.map((color: string[], i: number) => `colormap[${i}] = vec3(${color.join(',')})`).join(';\n')};
 
+        // Min and max CE values
+        float min = ${sourceMin};
+        float max = ${sourceMin + sourceRange};
+
+        // Actual CE value
         float ce = CE(fsInput.metadata.c0_0, fsInput.metadata.c1_0, fsInput.metadata.c1_0, fsInput.metadata.c1_1);
 
-        float range = 2.5; // TODO: dynamically calculate this?
+        // Normalize the CE value to a [0, 1] scale
+        float normalized_0_1 = (ce - min) / (max - min);
 
-        int colormapIndex = int(((ce) / range) * 100.0);
+        int colormapIndex = int(normalized_0_1 * 100.0);
 
         // The version of GLSL that Cesium uses doesn't support indexing arrays with variables.
         // But, the compiler will unroll constant-length loops, so we can use one here
@@ -346,8 +352,12 @@ export function createShader(
         for (int i = 0; i < ${COLOR_MAP.length}; i++) {
           if (i == colormapIndex) {
             material.diffuse = colormap[i];
+            return;
           }
         }
+
+        // Make the shader return black to indicate failure if the index wasn't computed properly
+        material.diffuse = vec3(0, 0, 0);
       }
     `;
   } else if (shaderTitle === 'LE90') {
@@ -360,9 +370,9 @@ export function createShader(
 
         float c2_2 = fsInput.metadata.c2_2;
 
-        // Calculate minimum and maximum LE values
-        float min = 1.6499 * sqrt(${sourceMin});
-        float max = 1.6499 * sqrt(${sourceMin} + ${sourceRange});
+        // Get minimum and maximum LE values
+        float min = ${sourceMin};
+        float max = ${sourceMin + sourceRange};
 
         // Compute actual LE value
         float LE = 1.6499 * sqrt(c2_2);
