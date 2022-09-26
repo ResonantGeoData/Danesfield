@@ -46,14 +46,11 @@
                   mdi-eye
                 </v-icon>
               </v-btn>
-            </td>
-            <td style="width: 30%;">
-              <v-select
-                :items="shaderOptions"
-                item-text="title"
-                label="Shader"
-                outlined
-                @change="updateShader(tileset.spatial_id, $event)"
+              <ShaderSettings
+                :disabled="!tiles3dIsVisible(tileset.spatial_id)"
+                :dataset-id="datasetId"
+                :tiles3d="tiles3d"
+                :tiles3d-id="tileset.spatial_id"
               />
             </td>
           </tr>
@@ -136,10 +133,6 @@
         </tbody>
       </template>
     </v-simple-table>
-    <canvas
-      id="canvas"
-      class="mx-3 justify-end"
-    />
     <FMVViewer
       v-if="fmvBeingViewed"
       :fmv-meta="fmvBeingViewed"
@@ -155,36 +148,9 @@ import { addVisibleOverlay, visibleOverlayIds } from '@/store/cesium/layers';
 import { cesiumViewer } from '@/store/cesium';
 import { addFootprint, removeFootprint, visibleFootprints } from '@/store/cesium/footprints';
 import { FMVMeta, RasterMeta, Tiles3DMeta } from '@/types';
-import { renderFlightPath, createShader } from '@/utils/cesium';
+import { renderFlightPath } from '@/utils/cesium';
 import FMVViewer from './FMVViewer.vue';
-
-function createShaderOption(
-  title: string,
-  propertyName: string | undefined,
-  sourceMin: number,
-  sourceMax: number,
-) {
-  return {
-    title, propertyName, sourceMin, sourceMax,
-  };
-}
-
-const shaderOptions: {
-  title: string;
-  propertyName?: string;
-  sourceMin?: number;
-  sourceMax?: number;
-}[] = [
-  createShaderOption('Default Shading', undefined, 0.0, 1.0),
-  createShaderOption('C 0_0', 'c0_0', 0.043, 0.181),
-  createShaderOption('C 1_0', 'c1_0', -0.036, 0.196),
-  createShaderOption('C 1_1', 'c1_1', 0.074, 0.324),
-  createShaderOption('C 2_0', 'c2_0', -0.072, 0.897),
-  createShaderOption('C 2_1', 'c2_1', -1.06, 0.883),
-  createShaderOption('C 2_2', 'c2_2', 1.41, 2.259),
-  createShaderOption('LE90', undefined, 1.959, 1.201),
-  createShaderOption('CE90', undefined, 0.531, 0.689),
-];
+import ShaderSettings from './ShaderSettings.vue';
 
 const props = defineProps({
   datasetId: {
@@ -377,30 +343,5 @@ onMounted(async () => {
 
   loading.value = false;
 });
-
-function updateShader(tiles3dId: number, shaderTitle: string) {
-  if (tiles3dIsVisible(tiles3dId)) {
-    const current = tiles3d.value[tiles3dId];
-    const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
-    const { scene } = cesiumViewer.value;
-    const { primitives } = scene;
-
-    const selectedShader = shaderOptions.find((shader) => shader.title === shaderTitle);
-
-    // Check if this tileset is already downloaded. If it is, show/hide it and return.
-    for (let i = 0; i < primitives.length; i += 1) {
-      const currentTileset = primitives.get(i);
-      // eslint-disable-next-line no-underscore-dangle
-      if (currentTileset._url === tilesetURL) {
-        currentTileset.customShader = createShader(
-          shaderTitle,
-          selectedShader?.propertyName,
-          selectedShader?.sourceMin,
-          selectedShader?.sourceMax,
-        );
-      }
-    }
-  }
-}
 
 </script>
