@@ -272,7 +272,6 @@ function hideColorBar(tiles3dId: number) {
 
 export function createShader(
   tiles3dId: number,
-  shaderTitle: string,
   propertyName: string | undefined,
   sourceMin: number,
   sourceRange: number,
@@ -324,7 +323,7 @@ export function createShader(
   // GLSL code for Cesium to generate shader
   let fragmentShaderText;
 
-  if (shaderTitle === 'CE90') {
+  if (propertyName === 'CE90') {
     fragmentShaderText = `
       vec2 eigenValues2x2(float m0_0, float m0_1, float m1_0, float m1_1)
       {
@@ -401,7 +400,7 @@ export function createShader(
         material.diffuse = vec3(0, 0, 0);
       }
     `;
-  } else if (shaderTitle === 'LE90') {
+  } else if (propertyName === 'LE90') {
     fragmentShaderText = `
       void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
       {
@@ -442,9 +441,7 @@ export function createShader(
         material.diffuse = vec3(0, 0, 0);
       }
     `;
-  } else if (propertyName) {
-    // If propertyName is defined, assume this is a covariance value and
-    // use the brightness shader
+  } else if (propertyName && /c\d_\d/.test(propertyName)) {
     fragmentShaderText = `
       void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
       {
