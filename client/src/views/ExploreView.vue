@@ -1,21 +1,3 @@
-<template>
-  <v-row
-    style="height: 100%"
-    no-gutters
-  >
-    <v-col cols="3">
-      <dataset-list />
-    </v-col>
-    <v-col
-      cols="9"
-      class="d-flex justify-center"
-      style="height: 100%;"
-    >
-      <CesiumViewer :footprints="footprints" />
-    </v-col>
-  </v-row>
-</template>
-
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router/composables';
@@ -56,3 +38,21 @@ onMounted(async () => {
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 });
 </script>
+
+<template>
+  <v-row
+    style="height: 100%"
+    no-gutters
+  >
+    <v-col cols="3">
+      <dataset-list />
+    </v-col>
+    <v-col
+      cols="9"
+      class="d-flex justify-center"
+      style="height: 100%;"
+    >
+      <CesiumViewer :footprints="footprints" />
+    </v-col>
+  </v-row>
+</template>

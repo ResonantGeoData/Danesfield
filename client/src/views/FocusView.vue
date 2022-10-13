@@ -1,3 +1,15 @@
+<script setup lang="ts">
+import CesiumViewer from '@/components/CesiumViewer.vue';
+import DatasetPanel from '@/components/DatasetPanel.vue';
+
+defineProps({
+  datasetId: {
+    type: String,
+    required: true,
+  },
+});
+</script>
+
 <template>
   <v-row
     style="height: 100%"
@@ -15,15 +27,3 @@
     </v-col>
   </v-row>
 </template>
-
-<script setup lang="ts">
-import CesiumViewer from '@/components/CesiumViewer.vue';
-import DatasetPanel from '@/components/DatasetPanel.vue';
-
-defineProps({
-  datasetId: {
-    type: String,
-    required: true,
-  },
-});
-</script>
