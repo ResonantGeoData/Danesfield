@@ -29,10 +29,10 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python',
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.10',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
