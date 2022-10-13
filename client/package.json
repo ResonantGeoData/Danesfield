@@ -17,9 +17,9 @@
     "colormap": "^2.3.2",
     "django-s3-file-field": "^0.3.0",
     "filesize": "^9.0.11",
-    "vue": "^2.7.10",
-    "vue-router": "^3.6.4",
-    "vuetify": "^2.6.9"
+    "vue": "^2.7.12",
+    "vue-router": "^3.6.5",
+    "vuetify": "^2.6.11"
   },
   "devDependencies": {
     "@types/colormap": "^2.3.1",
