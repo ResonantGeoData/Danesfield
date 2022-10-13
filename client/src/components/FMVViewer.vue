@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import {
-  onMounted, onUnmounted, PropType, ref,
-} from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
+import type { PropType } from 'vue';
 import * as Cesium from 'cesium';
 import { cesiumViewer } from '@/store/cesium';
-import { FMVMeta } from '@/types';
+import type { FMVMeta } from '@/types';
 
 const props = defineProps({
   fmvMeta: {

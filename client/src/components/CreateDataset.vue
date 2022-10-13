@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 
 import { axiosInstance } from '@/api';
-import { ChecksumFile } from '@/types';
+import type { ChecksumFile } from '@/types';
 import UploadDialog from '@/components/UploadDialog.vue';
 
 const emit = defineEmits(['created']);

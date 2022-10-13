@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, PropType, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
+import type { PropType } from 'vue';
 import * as Cesium from 'cesium';
 import { axiosInstance } from '@/api';
 import { addVisibleOverlay, visibleOverlayIds } from '@/store/cesium/layers';
 import { cesiumViewer } from '@/store/cesium';
 import { addFootprint, removeFootprint, visibleFootprints } from '@/store/cesium/footprints';
-import { FMVMeta, RasterMeta, Tiles3DMeta } from '@/types';
+import type { FMVMeta, RasterMeta, Tiles3DMeta } from '@/types';
 import { renderFlightPath } from '@/utils/cesium';
 import FMVViewer from './FMVViewer.vue';
 import ShaderSettings from './ShaderSettings.vue';

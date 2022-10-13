@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import {
-  onMounted, ref, watch, PropType,
-} from 'vue';
+import { onMounted, ref, watch } from 'vue';
+import type { PropType } from 'vue';
 
 import { axiosInstance } from '@/api';
-import { ChecksumFile } from '@/types';
+import type { ChecksumFile } from '@/types';
 
 const fileListHeaders = [
   { text: 'Name', value: 'name' },

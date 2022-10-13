@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import 'cesium/Build/Cesium/Widgets/widgets.css';
-import { onMounted, PropType } from 'vue';
+import { onMounted } from 'vue';
+import type { PropType } from 'vue';
 import * as Cesium from 'cesium';
 import { cesiumViewer } from '@/store/cesium';
 import { imageryViewModels } from '@/utils/cesium';
