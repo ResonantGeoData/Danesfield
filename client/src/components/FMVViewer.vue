@@ -1,20 +1,3 @@
-<template>
-  <video
-    ref="videoElement"
-    width="100%"
-    height="240"
-    autobuffer
-    autoplay
-    crossorigin="true"
-    loop
-  >
-    <source
-      :src="fmvMeta.fmv_file.web_video_file"
-      type="video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;"
-    >
-  </video>
-</template>
-
 <script setup lang="ts">
 import {
   onMounted, onUnmounted, PropType, ref,
@@ -92,3 +75,20 @@ onUnmounted(() => {
 });
 
 </script>
+
+<template>
+  <video
+    ref="videoElement"
+    width="100%"
+    height="240"
+    autobuffer
+    autoplay
+    crossorigin="true"
+    loop
+  >
+    <source
+      :src="fmvMeta.fmv_file.web_video_file"
+      type="video/mp4; codecs=&quot;avc1.42E01E, mp4a.40.2&quot;"
+    >
+  </video>
+</template>
