@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { onMounted, PropType } from 'vue';
-import { Camera, Viewer } from 'cesium';
+import * as Cesium from 'cesium';
 import { cesiumViewer } from '@/store/cesium';
 import { imageryViewModels } from '@/utils/cesium';
 import type { Polygon } from 'geojson';  // eslint-disable-line
+
+const CESIUM_API_KEY: string | undefined = process.env.VUE_APP_CESIUM_ION_API_KEY;
+
+if (CESIUM_API_KEY) {
+  Cesium.Ion.defaultAccessToken = CESIUM_API_KEY;
+}
 
 defineProps({
   footprints: {
@@ -13,12 +19,11 @@ defineProps({
   },
 });
 
-onMounted(() => {
-  // Initialize the viewer - this works without a token
-  cesiumViewer.value = new Viewer('cesiumContainer', {
-    // imageryProvider: false,
-    imageryProviderViewModels: imageryViewModels,
-    selectedImageryProviderViewModel: imageryViewModels[5], // Voyager
+onMounted(async () => {
+  // Initialize the CesiumJS viewer
+  cesiumViewer.value = await new Cesium.Viewer('cesiumContainer', {
+    imageryProviderViewModels: CESIUM_API_KEY ? imageryViewModels : undefined,
+    terrainProvider: CESIUM_API_KEY ? Cesium.createWorldTerrain() : undefined,
     animation: true,
     shouldAnimate: true,
     timeline: true,
@@ -28,11 +33,15 @@ onMounted(() => {
     selectionIndicator: false,
     geocoder: false,
   });
-  // Remove the Terrain section of the baseLayerPicker
-  cesiumViewer.value.baseLayerPicker.viewModel.terrainProviderViewModels.removeAll();
+
+  // Remove terrain layer if a Cesium Ion token isn't available. Otherwise,
+  // even the imagery layer won't render if you don't specify a key.
+  if (!CESIUM_API_KEY) {
+    cesiumViewer.value.baseLayerPicker.viewModel.terrainProviderViewModels.removeAll();
+  }
 
   cesiumViewer.value.forceResize();
-  Camera.DEFAULT_VIEW_FACTOR = 0;
+  Cesium.Camera.DEFAULT_VIEW_FACTOR = 0;
 });
 
 </script>

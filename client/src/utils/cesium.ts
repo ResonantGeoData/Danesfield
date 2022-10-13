@@ -1,5 +1,6 @@
 import * as Cesium from 'cesium';
 import { buildModuleUrl, ProviderViewModel, UrlTemplateImageryProvider } from 'cesium';
+import colormap from 'colormap';
 import { cesiumViewer } from '@/store/cesium';
 
 /* Stamen's website (http://maps.stamen.com) as of 2019-08-28 says that the
@@ -237,4 +238,229 @@ export function renderFlightPath(id: number, flightData: number[][]): Cesium.Ent
   });
 
   return airplaneEntity;
+}
+
+function displayColorBar(tiles3dId: number, min: number, max: number, colorMap: number[][]) {
+  const canvas = document.getElementById(`canvas-${tiles3dId}`) as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+
+  const gradient = ctx.createLinearGradient(0, 0, 300, 0);
+
+  colorMap.forEach((colors: number[], i) => {
+    // Convert color from array of three floats to `rgb(r,g,b)` format
+    const color = `rgb(${colors.map((c: number) => c * 255).join(',')})`;
+    gradient.addColorStop(i / 100, color);
+  });
+
+  // Set the fill style and draw a rectangle
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 300, 30);
+  ctx.font = '16px Roboto';
+
+  ctx.fillStyle = '#000000';
+  // Draw min and max values at opposite ends of the color bar
+  ctx.fillText(parseFloat(min.toString()).toFixed(2), 0, 50);
+  ctx.fillText(parseFloat(((max + min) / 2).toString()).toFixed(2), 265 / 2, 50);
+  ctx.fillText(parseFloat(max.toString()).toFixed(2), 265, 50);
+}
+
+function hideColorBar(tiles3dId: number) {
+  const canvas = document.getElementById(`canvas-${tiles3dId}`) as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+export function createShader(
+  tiles3dId: number,
+  shaderTitle: string,
+  propertyName: string | undefined,
+  sourceMin: number,
+  sourceRange: number,
+  colormapName?: string,
+) {
+  // Generate color map
+  const colorMap: number[][] = colormap({
+    colormap: colormapName,
+    nshades: 101,
+    format: 'float',
+    alpha: 1,
+  }).map((color: number[], i: number) => {
+    if (i === 0) {
+      return [0, 0, 0];
+    }
+    const newColor = JSON.parse(JSON.stringify(color));
+    // remove the alpha value
+    newColor.pop();
+    return newColor;
+  });
+
+  // Lookup table for CE calculation
+  const RLookupTable = [
+    1.6449,
+    1.6456,
+    1.6479,
+    1.6518,
+    1.6573,
+    1.6646,
+    1.6738,
+    1.6852,
+    1.6992,
+    1.7163,
+    1.7371,
+    1.7621,
+    1.7915,
+    1.8251,
+    1.8625,
+    1.9034,
+    1.9472,
+    1.9936,
+    2.0424,
+    2.0932,
+    2.1460,
+  ];
+
+  hideColorBar(tiles3dId);
+
+  // GLSL code for Cesium to generate shader
+  let fragmentShaderText;
+
+  if (shaderTitle === 'CE90') {
+    fragmentShaderText = `
+      vec2 eigenValues2x2(float m0_0, float m0_1, float m1_0, float m1_1)
+      {
+        // Calculates the eigenvalues of the given 2x2 matrix
+        float p = m0_0 + m1_1;
+        float q = m0_0 * m1_1 - m0_1 * m1_0;
+        float r = sqrt(p * p - 4.0 * q);
+        float vmax = 0.5 * (p + r);
+        float vmin = 0.5 * (p - r);
+        return vec2(vmax, vmin);
+      }
+
+      float R(float r)
+      {
+        float lookupTable[${RLookupTable.length}];
+        ${RLookupTable.map((value, i) => `lookupTable[${i}] = ${value};`).join('\n')}
+        int ndx = int(${RLookupTable.length - 1}.0 * r);
+        for (int i = 0; i < ${RLookupTable.length}; i++) {
+          if (i == ndx) {
+            return lookupTable[i];
+          }
+        }
+        return 0.0;
+      }
+
+      float CE(float m0_0, float m0_1, float m1_0, float m1_1)
+      {
+        vec2 eigenvalues = eigenValues2x2(m0_0, m0_1, m1_0, m1_1);
+
+        float vmax = eigenvalues[0];
+        float vmin = eigenvalues[1];
+
+        float smax = sqrt(vmax);
+        float smin = sqrt(vmin);
+
+        float r = smin / smax;
+
+        return R(r) * smax;
+      }
+
+      void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
+      {
+        // Generate colormap
+        vec3 colormap[${colorMap.length}];
+        ${colorMap.map((color: number[], i: number) => `colormap[${i}] = vec3(${color.join(',')})`).join(';\n')};
+
+        // Min and max CE values
+        float min = float(${sourceMin});
+        float max = float(${sourceMin + sourceRange});
+
+        // Actual CE value
+        float ce = CE(fsInput.metadata.c0_0, fsInput.metadata.c1_0, fsInput.metadata.c1_0, fsInput.metadata.c1_1);
+
+        if (ce > max) {
+          ce = max;
+        }
+
+        // Normalize the CE value to a [0, 1] scale
+        float normalized_0_1 = (ce - min) / (max - min);
+
+        int colormapIndex = int(normalized_0_1 * 100.0);
+
+        // The version of GLSL that Cesium uses doesn't support indexing arrays with variables.
+        // But, the compiler will unroll constant-length loops, so we can use one here
+        // to index the array with a variable.
+        for (int i = 0; i < ${colorMap.length}; i++) {
+          if (i == colormapIndex) {
+            material.diffuse = colormap[i];
+            return;
+          }
+        }
+
+        // Make the shader return black to indicate failure if the index wasn't computed properly
+        material.diffuse = vec3(0, 0, 0);
+      }
+    `;
+  } else if (shaderTitle === 'LE90') {
+    fragmentShaderText = `
+      void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
+      {
+        // Generate colormap
+        vec3 colormap[${colorMap.length}];
+        ${colorMap.map((color: number[], i: number) => `colormap[${i}] = vec3(${color.join(',')})`).join(';\n')};
+
+        float c2_2 = fsInput.metadata.c2_2;
+
+        // Get minimum and maximum LE values
+        float min = float(${sourceMin});
+        float max = float(${sourceMin + sourceRange});
+
+        // Compute actual LE value
+        float LE = 1.6499 * sqrt(c2_2);
+
+        if (LE > max) {
+          LE = max;
+        }
+
+        // Normalize the LE value to a [0, 1] scale
+        float normalized_0_1 = (LE - min) / (max - min);
+
+        // Convert the normalized LE value into an index for the colormap array
+        int colormapIndex = int(normalized_0_1 * 100.0);
+
+        // The version of GLSL that Cesium uses doesn't support indexing arrays with variables.
+        // But, the compiler will unroll constant-length loops, so we can use one here
+        // to index the array with a variable.
+        for (int i = 0; i < ${colorMap.length}; i++) {
+            if (i == colormapIndex) {
+              material.diffuse = colormap[i];
+              return;
+            }
+        }
+
+        // Make the shader return black to indicate failure if the index wasn't computed properly
+        material.diffuse = vec3(0, 0, 0);
+      }
+    `;
+  } else if (propertyName) {
+    // If propertyName is defined, assume this is a covariance value and
+    // use the brightness shader
+    fragmentShaderText = `
+      void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
+      {
+        float value = float(fsInput.metadata.${propertyName});
+        float range = ${sourceRange};
+        float brightness = (value - float(${sourceMin})) / range;
+        material.diffuse = vec3(brightness);
+      }
+    `;
+  } else {
+    // Otherwise, assume this is default and return undefined so that any existing custom
+    // shaders are removed.
+    return undefined;
+  }
+
+  displayColorBar(tiles3dId, sourceMin, sourceMin + sourceRange, colorMap);
+
+  return new Cesium.CustomShader({ fragmentShaderText });
 }

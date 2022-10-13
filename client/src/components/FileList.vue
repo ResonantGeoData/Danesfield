@@ -46,6 +46,12 @@
                   mdi-eye
                 </v-icon>
               </v-btn>
+              <ShaderSettings
+                :disabled="!tiles3dIsVisible(tileset.spatial_id)"
+                :dataset-id="datasetId"
+                :tiles3d="tiles3d"
+                :tiles3d-id="tileset.spatial_id"
+              />
             </td>
           </tr>
           <tr
@@ -144,6 +150,7 @@ import { addFootprint, removeFootprint, visibleFootprints } from '@/store/cesium
 import { FMVMeta, RasterMeta, Tiles3DMeta } from '@/types';
 import { renderFlightPath } from '@/utils/cesium';
 import FMVViewer from './FMVViewer.vue';
+import ShaderSettings from './ShaderSettings.vue';
 
 const props = defineProps({
   datasetId: {
@@ -171,9 +178,7 @@ const props = defineProps({
 const rasters = ref<Record<number, RasterMeta>>({});
 const tiles3d = ref<Record<number, Tiles3DMeta>>({});
 const fmvs = ref<Record<number, FMVMeta>>({});
-
 const fmvBeingViewed = ref<FMVMeta | null>(null);
-
 const loading = ref(true);
 
 function rasterIsVisible(rasterId: number) {
