@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import {
-  ref, PropType, watchEffect, computed,
-} from 'vue';
-import type { ComputedRef } from 'vue';
+import { ref, watchEffect, computed } from 'vue';
+import type { ComputedRef, PropType } from 'vue';
 import { createShader } from '@/utils/cesium';
 import { axiosInstance } from '@/api';
 import type { Tiles3DMeta } from '@/types';

@@ -3,15 +3,13 @@ import { ref } from 'vue';
 import { AxiosResponse } from 'axios';
 import { axiosInstance } from '@/api';
 import router from '@/router';
-import { Dataset } from '@/types';
+import type { Dataset } from '@/types';
 
 const datasets = ref<Dataset[]>([]);
-
 axiosInstance.get('/datasets/', { params: { include_input_datasets: false } })
   .then((resp: AxiosResponse) => {
     datasets.value = resp.data.results;
   });
-
 function viewDataset(datasetId: string) {
   router.push({ name: 'focus', params: { datasetId } });
 }

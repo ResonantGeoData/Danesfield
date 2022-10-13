@@ -5,7 +5,7 @@ import {
 import filesize from 'filesize';
 
 import { axiosInstance } from '@/api';
-import {
+import type {
   Algorithm, ChecksumFile, Dataset, Task,
 } from '@/types';
 
