@@ -23,7 +23,7 @@ defineProps({
 onMounted(async () => {
   // Initialize the CesiumJS viewer
   cesiumViewer.value = await new Cesium.Viewer('cesiumContainer', {
-    imageryProviderViewModels: CESIUM_API_KEY ? imageryViewModels : undefined,
+    imageryProviderViewModels: CESIUM_API_KEY ? undefined : imageryViewModels,
     terrainProvider: CESIUM_API_KEY ? Cesium.createWorldTerrain() : undefined,
     animation: true,
     shouldAnimate: true,
