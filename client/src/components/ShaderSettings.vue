@@ -173,6 +173,7 @@ watchEffect(() => {
   >
     <template #activator="{ on, attrs }">
       <v-btn
+        :loading="!disabled && shaderOptions.length === 0"
         :disabled="disabled"
         icon
         v-bind="attrs"
