@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import {
-  ref, watchEffect, computed, onMounted,
-} from 'vue';
+import { ref, watchEffect, computed } from 'vue';
 import type { Ref, PropType } from 'vue';
 import * as Cesium from 'cesium';
 import { createShader, CE90, LE90 } from '@/utils/cesium';
@@ -52,7 +50,7 @@ const shaderOptions: Ref<{
   sourceRange: number;
 }[]> = ref([]);
 
-onMounted(async () => {
+watchEffect(async () => {
   const current = props.tiles3d[props.tiles3dId];
   const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
   const { scene } = cesiumViewer.value;
