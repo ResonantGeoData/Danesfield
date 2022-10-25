@@ -8,16 +8,15 @@ jobs:
   client:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
-          node-version: '14.x'
+          node-version: '16'
           cache: 'yarn'
           cache-dependency-path: client/yarn.lock
 
       - name: Install web app
-        if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
         working-directory: client
 
@@ -53,9 +52,9 @@ jobs:
         ports:
           - 9000:9000
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.8"
       - name: Install tox
