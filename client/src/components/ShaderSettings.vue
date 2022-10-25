@@ -35,6 +35,7 @@ const colorMapOptions = computed(() => {
   switch (shader.value) {
     case 'LE90':
     case 'CE90':
+    case 'cdist':
       return ['plasma', 'cool', 'warm', 'inferno'];
     case 'Default':
       return [];

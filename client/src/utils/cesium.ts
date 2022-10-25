@@ -261,7 +261,7 @@ function displayColorBar(tiles3dId: number, min: number, max: number, colorMap: 
   // Draw min and max values at opposite ends of the color bar
   ctx.fillText(parseFloat(min.toString()).toFixed(2), 0, 50);
   ctx.fillText(parseFloat(((max + min) / 2).toString()).toFixed(2), 265 / 2, 50);
-  ctx.fillText(parseFloat(max.toString()).toFixed(2), 265, 50);
+  ctx.fillText(parseFloat(max.toString()).toFixed(2), 250, 50);
 }
 
 function hideColorBar(tiles3dId: number) {
@@ -449,6 +449,40 @@ export function createShader(
         float range = ${sourceRange};
         float brightness = (value - float(${sourceMin})) / range;
         material.diffuse = vec3(brightness);
+      }
+    `;
+  } else if (propertyName === 'cdist') {
+    fragmentShaderText = `
+      void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
+      {
+        // Generate colormap
+        vec3 colormap[${colorMap.length}];
+        ${colorMap.map((color: number[], i: number) => `colormap[${i}] = vec3(${color.join(',')})`).join(';\n')};
+
+        float cdist = fsInput.metadata.cdist;
+
+        // Get minimum and maximum LE values
+        float min = float(${sourceMin});
+        float max = float(${sourceMin + sourceRange});
+
+        // Normalize the value to a [0, 1] scale
+        float normalized_0_1 = (cdist - min) / (max - min);
+
+        // Convert the normalized value into an index for the colormap array
+        int colormapIndex = int(normalized_0_1 * 100.0);
+
+        // The version of GLSL that Cesium uses doesn't support indexing arrays with variables.
+        // But, the compiler will unroll constant-length loops, so we can use one here
+        // to index the array with a variable.
+        for (int i = 0; i < ${colorMap.length}; i++) {
+            if (i == colormapIndex) {
+              material.diffuse = colormap[i];
+              return;
+            }
+        }
+
+        // Make the shader return black to indicate failure if the index wasn't computed properly
+        material.diffuse = vec3(0, 0, 0);
       }
     `;
   } else {
