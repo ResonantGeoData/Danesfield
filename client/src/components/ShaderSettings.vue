@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref, watchEffect, computed } from 'vue';
-import type { ComputedRef, PropType } from 'vue';
-import { createShader } from '@/utils/cesium';
+import {
+  ref, watchEffect, computed, onMounted,
+} from 'vue';
+import type { Ref, PropType } from 'vue';
+import * as Cesium from 'cesium';
+import { createShader, CE90, LE90 } from '@/utils/cesium';
 import { axiosInstance } from '@/api';
 import type { Tiles3DMeta } from '@/types';
 import { cesiumViewer } from '@/store/cesium';
@@ -32,6 +35,7 @@ const colorMapOptions = computed(() => {
   switch (shader.value) {
     case 'LE90':
     case 'CE90':
+    case 'cdist':
       return ['plasma', 'cool', 'warm', 'inferno'];
     case 'Default':
       return [];
@@ -42,64 +46,86 @@ const colorMapOptions = computed(() => {
 
 const colormap = ref('');
 
-function createShaderOption(
-  title: string,
-  propertyName: string | undefined,
-  sourceMin: number,
-  sourceMax: number,
-) {
-  return {
-    title, propertyName, sourceMin, sourceMax,
-  };
-}
-
-const shaderOptions: ComputedRef<{
-  title: string;
+const shaderOptions: Ref<{
   propertyName?: string;
   sourceMin: number;
-  sourceMax: number;
-}[]> = computed(() => {
-  // TODO: calculate these manually once Cesium supports it. For now, just hardcode
-  // the values for the datasets we care about.
-  switch (props.tiles3d[props.tiles3dId].source.name) {
-    case 'ucsd-all-region':
-      return [
-        createShaderOption('Default', undefined, 0.0, 1.0),
-        createShaderOption('C 0_0', 'c0_0', 0.043, 0.181),
-        createShaderOption('C 1_0', 'c1_0', -0.036, 0.196),
-        createShaderOption('C 1_1', 'c1_1', 0.074, 0.324),
-        createShaderOption('C 2_0', 'c2_0', -0.072, 0.897),
-        createShaderOption('C 2_1', 'c2_1', -1.06, 0.883),
-        createShaderOption('C 2_2', 'c2_2', 1.41, 2.259),
-        createShaderOption('LE90', undefined, 1.959, 1.201),
-        createShaderOption('CE90', undefined, 0.531, 0.689),
-      ];
-    case 'ucsd-full-region-self-error':
-      return [
-        createShaderOption('Default', undefined, 0.0, 1.0),
-        createShaderOption('C 0_0', 'c0_0', 0.08187296986579895, 2.7708709239959717e-05),
-        createShaderOption('C 1_0', 'c1_0', -1.1274002645222936e-05, 8.595945473643951e-06),
-        createShaderOption('C 1_1', 'c1_1', 0.08102615922689438, 1.3262033462524414e-05),
-        createShaderOption('C 2_0', 'c2_0', 0.005069461185485125, 0.00010266946628689766),
-        createShaderOption('C 2_1', 'c2_1', -0.008007237687706947, 8.565373718738556e-06),
-        createShaderOption('C 2_2', 'c2_2', 0.16099649667739868, 0.0001596212387084961),
-        createShaderOption('LE90', undefined, 0.6620119598393063, 0.0003280971701203894),
-        createShaderOption('CE90', undefined, 0.5989373493306599, 0.00010082366752983685),
-      ];
-    case 'ucsd-all-total-error':
-      return [
-        createShaderOption('Default', undefined, 0.0, 1.0),
-        createShaderOption('C 0_0', 'c0_0', 0.12492009997367859, 0.18175694346427917),
-        createShaderOption('C 1_0', 'c1_0', -0.03651577606797218, 0.19667799770832062),
-        createShaderOption('C 1_1', 'c1_1', 0.1556130051612854, 0.3247891366481781),
-        createShaderOption('C 2_0', 'c2_0', -0.7162777185440063, 0.8980929851531982),
-        createShaderOption('C 2_1', 'c2_1', -1.0689252614974976, 0.8836731910705566),
-        createShaderOption('C 2_2', 'c2_2', 1.571554183959961, 2.259568214416504),
-        createShaderOption('LE90', undefined, 2.068341767857969, 1.1610492734220559),
-        createShaderOption('CE90', undefined, 0.7899198029969414, 0.5694263650359508),
-      ];
-    default:
-      return [];
+  sourceRange: number;
+}[]> = ref([]);
+
+onMounted(async () => {
+  const current = props.tiles3d[props.tiles3dId];
+  const tilesetURL = `${axiosInstance.defaults.baseURL}/datasets/${props.datasetId}/file/${current.source.json_file.name}`;
+  const { scene } = cesiumViewer.value;
+  const { primitives } = scene;
+  for (let i = 0; i < primitives.length; i += 1) {
+    const primitive = primitives.get(i);
+    /* eslint-disable no-underscore-dangle */
+    if (primitive._url === tilesetURL) {
+      primitive.tileVisible.addEventListener((tile: Cesium.Cesium3DTile) => {
+        if (shaderOptions.value.length > 0) {
+          return;
+        }
+
+        // Add default texture to shader dropdown
+        shaderOptions.value.unshift({
+          propertyName: 'Default',
+          sourceMin: 0.0,
+          sourceRange: 1.0,
+        });
+
+        // We're using a private API here, so wrap this in a try/catch so any errors don't
+        // crash the entire app.
+        try {
+        // @ts-ignore
+          const { properties } = tile._content._model.structuralMetadata?._propertyTextures[0];
+
+          // Add covariance values to dropdown
+          shaderOptions.value.push(...Object.entries(properties).map(
+            ([propertyName, propertyValues]: [string, any]) => ({
+              propertyName,
+              sourceMin: propertyValues._offset,
+              sourceRange: propertyValues._scale,
+            }),
+          ));
+
+          // Calculate LE90/CE90 values and add them to dropdown
+          /* eslint-disable camelcase */
+          const C0_0_min = properties.c0_0._offset;
+          const C0_0_max = C0_0_min + properties.c0_0._scale;
+
+          const C1_0_min = properties.c1_0._offset;
+          const C1_0_max = C1_0_min + properties.c1_0._scale;
+
+          const C1_1_min = properties.c1_1._offset;
+          const C1_1_max = C1_1_min + properties.c1_1._scale;
+
+          const C2_2_min = properties.c2_2._offset;
+          const C2_2_max = C2_2_min + properties.c2_2._scale;
+
+          const LE90_values = {
+            propertyName: 'LE90',
+            sourceMin: LE90(C2_2_min),
+            sourceRange: LE90(C2_2_max) - LE90(C2_2_min),
+          };
+          if (LE90_values.sourceMin && LE90_values.sourceRange) {
+            shaderOptions.value.push(LE90_values);
+          }
+
+          const CE90_values = {
+            propertyName: 'CE90',
+            sourceMin: CE90(C0_0_min, C1_0_min, C1_1_min),
+            sourceRange: CE90(C0_0_max, C1_0_max, C1_1_max) - CE90(C0_0_min, C1_0_min, C1_1_min),
+          };
+          if (CE90_values.sourceMin && CE90_values.sourceRange) {
+            shaderOptions.value.push(CE90_values);
+          }
+          /* eslint-enable camelcase */
+        } catch (e) {
+          // ignore
+        }
+      });
+    }
+    /* eslint-enable no-underscore-dangle */
   }
 });
 
@@ -113,7 +139,7 @@ watchEffect(() => {
     [colormap.value] = colorMapOptions.value;
   }
 
-  const selectedShader = shaderOptions.value.find((s) => s.title === shader.value);
+  const selectedShader = shaderOptions.value.find((s) => s.propertyName === shader.value);
 
   if (!selectedShader) {
     throw Error('Shader not found!!');
@@ -126,10 +152,9 @@ watchEffect(() => {
     if (currentTileset._url === tilesetURL) {
       currentTileset.customShader = createShader(
         props.tiles3dId,
-        shader.value,
         selectedShader?.propertyName,
         selectedShader.sourceMin,
-        selectedShader.sourceMax,
+        selectedShader.sourceRange,
         colormap.value,
       );
     }
@@ -149,6 +174,7 @@ watchEffect(() => {
   >
     <template #activator="{ on, attrs }">
       <v-btn
+        :loading="!disabled && shaderOptions.length === 0"
         :disabled="disabled"
         icon
         v-bind="attrs"
@@ -165,7 +191,7 @@ watchEffect(() => {
             v-model="shader"
             class="mx-2"
             style="width: 8em; display: inline-flex;"
-            :items="shaderOptions.map((o) => o.title)"
+            :items="shaderOptions.map((o) => o.propertyName)"
             label="Shader"
             outlined
           />

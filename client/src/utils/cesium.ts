@@ -261,7 +261,7 @@ function displayColorBar(tiles3dId: number, min: number, max: number, colorMap: 
   // Draw min and max values at opposite ends of the color bar
   ctx.fillText(parseFloat(min.toString()).toFixed(2), 0, 50);
   ctx.fillText(parseFloat(((max + min) / 2).toString()).toFixed(2), 265 / 2, 50);
-  ctx.fillText(parseFloat(max.toString()).toFixed(2), 265, 50);
+  ctx.fillText(parseFloat(max.toString()).toFixed(2), 250, 50);
 }
 
 function hideColorBar(tiles3dId: number) {
@@ -272,7 +272,6 @@ function hideColorBar(tiles3dId: number) {
 
 export function createShader(
   tiles3dId: number,
-  shaderTitle: string,
   propertyName: string | undefined,
   sourceMin: number,
   sourceRange: number,
@@ -324,7 +323,7 @@ export function createShader(
   // GLSL code for Cesium to generate shader
   let fragmentShaderText;
 
-  if (shaderTitle === 'CE90') {
+  if (propertyName === 'CE90') {
     fragmentShaderText = `
       vec2 eigenValues2x2(float m0_0, float m0_1, float m1_0, float m1_1)
       {
@@ -401,7 +400,7 @@ export function createShader(
         material.diffuse = vec3(0, 0, 0);
       }
     `;
-  } else if (shaderTitle === 'LE90') {
+  } else if (propertyName === 'LE90') {
     fragmentShaderText = `
       void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
       {
@@ -442,9 +441,7 @@ export function createShader(
         material.diffuse = vec3(0, 0, 0);
       }
     `;
-  } else if (propertyName) {
-    // If propertyName is defined, assume this is a covariance value and
-    // use the brightness shader
+  } else if (propertyName && /c\d_\d/.test(propertyName)) {
     fragmentShaderText = `
       void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
       {
@@ -452,6 +449,40 @@ export function createShader(
         float range = ${sourceRange};
         float brightness = (value - float(${sourceMin})) / range;
         material.diffuse = vec3(brightness);
+      }
+    `;
+  } else if (propertyName === 'cdist') {
+    fragmentShaderText = `
+      void fragmentMain(FragmentInput fsInput, inout czm_modelMaterial material)
+      {
+        // Generate colormap
+        vec3 colormap[${colorMap.length}];
+        ${colorMap.map((color: number[], i: number) => `colormap[${i}] = vec3(${color.join(',')})`).join(';\n')};
+
+        float cdist = fsInput.metadata.cdist;
+
+        // Get minimum and maximum LE values
+        float min = float(${sourceMin});
+        float max = float(${sourceMin + sourceRange});
+
+        // Normalize the value to a [0, 1] scale
+        float normalized_0_1 = (cdist - min) / (max - min);
+
+        // Convert the normalized value into an index for the colormap array
+        int colormapIndex = int(normalized_0_1 * 100.0);
+
+        // The version of GLSL that Cesium uses doesn't support indexing arrays with variables.
+        // But, the compiler will unroll constant-length loops, so we can use one here
+        // to index the array with a variable.
+        for (int i = 0; i < ${colorMap.length}; i++) {
+            if (i == colormapIndex) {
+              material.diffuse = colormap[i];
+              return;
+            }
+        }
+
+        // Make the shader return black to indicate failure if the index wasn't computed properly
+        material.diffuse = vec3(0, 0, 0);
       }
     `;
   } else {
@@ -463,4 +494,54 @@ export function createShader(
   displayColorBar(tiles3dId, sourceMin, sourceMin + sourceRange, colorMap);
 
   return new Cesium.CustomShader({ fragmentShaderText });
+}
+
+export function LE90(C2_2: number) {
+  return 1.6499 * Math.sqrt(C2_2);
+}
+
+export function CE90(C0_0: number, C1_0: number, C1_1: number) {
+  function eigenv2x2() {
+    // char poly: x^2 - (a+d)x + (ad-bc) = 0
+    const [a, b, c, d] = [C0_0, C1_0, C1_0, C1_1];
+    const p = a + d;
+    const q = a * d - b * c;
+    const r = Math.sqrt(p * p - 4 * q);
+    const vmax = 0.5 * (p + r);
+    const vmin = 0.5 * (p - r);
+    return [vmax, vmin];
+  }
+  function R(r: number) {
+    const vals = [
+      1.6449,
+      1.6456,
+      1.6479,
+      1.6518,
+      1.6573,
+      1.6646,
+      1.6738,
+      1.6852,
+      1.6992,
+      1.7163,
+      1.7371,
+      1.7621,
+      1.7915,
+      1.8251,
+      1.8625,
+      1.9034,
+      1.9472,
+      1.9936,
+      2.0424,
+      2.0932,
+      2.1460,
+    ];
+    const n = vals.length - 1;
+    const ndx = Math.round(n * r);
+    return vals[ndx];
+  }
+  const [vmax, vmin] = eigenv2x2();
+  const smax = Math.sqrt(vmax);
+  const smin = Math.sqrt(vmin);
+  const r = smin / smax;
+  return R(r) * smax;
 }
