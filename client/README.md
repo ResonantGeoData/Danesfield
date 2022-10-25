@@ -1,28 +1,45 @@
-# Vue Project Template
+# Danesfield
+The Danesfield web client.
 
-This is a project boilerplate template designed for building SPAs that will serve as
-front-ends to Girder 4-based servers. The following features are included:
+## Develop
 
-* `vuetify` installation and configuration
-* `axios` installation and configuration
-* `vue-router` installation and skeleton boilerplate
-* Girder 4 OAuth client library installation and configuration
-* A home page containing a working OAuth login / logout button
-* Sentry integration (if no DSN is provided, this will be inactive)
-* Vue composition API shims
-* TypeScript
-* Best-practice eslint configuration
-* GitHub Actions CI that runs tests, lint, and build
+### Build and Run (Docker)
 
-## How to use this template
-
-1. Click the button in GitHub that says `Use this template`.
-
-> If you don't want to use GitHub, you can instead clone the repository,
-  `rm -rf .git/` in it, and `git init` the copy.
-
-2. After you have your copy, replace occurrences of `CHANGEME` in the codebase.
+From the root of the repository, run
 
 ```bash
-git grep CHANGEME
+docker compose up
 ```
+
+The web app will be served at `http://localhost:8080/`.
+This is the recommended way to run the application locally,
+since it also spins up the backend Django server for you.
+
+### Build and Run (Natively)
+
+Ensure you have Node.js and the Yarn package manager installed.
+Then run the following commands from the root of the repo
+
+```bash
+cd client/
+yarn install
+yarn run serve
+```
+
+The web app will be served at `http://localhost:8080/`.
+
+This app requires a server component to be useful, which you can run locally; see the [instructions](https://github.com/girder/Danesfield#danesfield) for doing so.
+Alternatively, simply run them both in Docker as described above.
+
+### Test
+
+In order to fix the code formatting and check for some common errors, run:
+
+```bash
+yarn run lint
+```
+
+### Environment Variables
+
+- VUE_APP_CESIUM_ION_API_KEY
+  - A Cesium Ion API key. This is needed for terrain to render in Cesium.JS. If not provided, no terrain will be rendered (i.e. the surface will be flat).
