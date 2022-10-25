@@ -13,7 +13,7 @@
     "@sentry/vue": "^7.12.1",
     "@turf/centroid": "^6.5.0",
     "axios": "^0.21.1",
-    "cesium": "^1.97.0",
+    "cesium": "1.97.0",
     "colormap": "^2.3.2",
     "django-s3-file-field": "^0.3.0",
     "filesize": "^9.0.11",
