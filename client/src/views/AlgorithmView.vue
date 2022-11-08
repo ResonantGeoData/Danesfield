@@ -8,6 +8,7 @@ import { axiosInstance } from '@/api';
 import type {
   Algorithm, ChecksumFile, Dataset, Task,
 } from '@/types';
+import CreateDataset from '@/components/CreateDataset.vue';
 
 const fileTableHeaders = [
   {
