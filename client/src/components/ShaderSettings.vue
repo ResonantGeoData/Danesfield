@@ -2,7 +2,8 @@
 import { ref, watchEffect, computed } from 'vue';
 import type { Ref, PropType } from 'vue';
 import * as Cesium from 'cesium';
-import { createShader, CE90, LE90 } from '@/utils/cesium';
+import { createShader } from '@/utils/cesium';
+import { CE90, LE90 } from '@/utils/error';
 import { axiosInstance } from '@/api';
 import type { Tiles3DMeta } from '@/types';
 import { cesiumViewer } from '@/store/cesium';

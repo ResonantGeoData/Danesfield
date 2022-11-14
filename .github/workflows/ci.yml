@@ -28,6 +28,10 @@ jobs:
         run: yarn run build
         working-directory: client
 
+      - name: Test web app
+        run: yarn run test
+        working-directory: client
+
   server:
     runs-on: ubuntu-latest
     services:
