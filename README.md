@@ -12,3 +12,10 @@ The web application is divided into a Django-based backend and a Vue.js-based fr
 
 - The backend is built on top of Kitware's [ResonantGeoData](https://github.com/ResonantGeoData/ResonantGeoData) and [RD-OASIS](https://github.com/ResonantGeoData/RD-OASIS) frameworks, in addition to [Django](https://www.djangoproject.com/) and [Django REST framework](https://www.django-rest-framework.org/).
 - The frontend web interface is built using [Vue.js](https://vuejs.org/) and [Vuetify](https://vuetifyjs.com/en/), as well as [CesiumJS](https://cesium.com/platform/cesiumjs/) for visualization of the Danesfield 3D tiles output.
+
+## Screenshots
+![explore](https://user-images.githubusercontent.com/37340715/204678326-b7ca4210-ed69-41cf-a2fa-d564f0a2a545.png)
+![3dtiles](https://user-images.githubusercontent.com/37340715/204678340-c422da02-3c16-4b57-b895-ab57e1290bce.png)
+![tasks](https://user-images.githubusercontent.com/37340715/204678377-71d18418-9656-4386-933f-d9bcec0964fa.png)
+![fmv](https://user-images.githubusercontent.com/37340715/204678386-0dbb4b09-4765-4cc4-842d-e28218355f75.png)
+![Self-LE90](https://user-images.githubusercontent.com/37340715/204678548-0b202252-d4d2-4443-b752-2edf62634a8b.png)
